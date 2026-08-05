@@ -37,7 +37,7 @@ const client = new Client({
     ]
 });
 
-client.once("ready", () => {
+client.once("clientready", () => {
     console.log(`${client.user.tag} is online! 😺`);
 });
 
