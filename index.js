@@ -37,7 +37,7 @@ const client = new Client({
     ]
 });
 
-client.once("clientReady", () => {
+client.once("ready", () => {
     console.log(`${client.user.tag} is online! 😺`);
 });
 
@@ -97,7 +97,7 @@ if (message.content.startsWith("meow!ship")) {
         message.reply("Meow! 😺");
     }
 
-  // Help Command
+// Help Command
 if (message.content === "meow!help") {
 
     console.log("HELP COMMAND USED");
@@ -110,17 +110,25 @@ if (message.content === "meow!help") {
         fields: [
 
             {
-                name: "💖 Interaction Commands",
+                name: "💖 Interaction Commands (1)",
                 value:
 `
 \`meow!hug @user\` 🤗 - Hug someone
 \`meow!kiss @user\` 💋 - Kiss someone
 \`meow!pat @user\` 🐾 - Pat someone
 \`meow!cuddle @user\` 🧸 - Cuddle someone
-\`meow!slap @user\` 💥 - Slap someone
 `
             },
 
+            {
+                name: "💥 Interaction Commands (2)",
+                value:
+`
+\`meow!slap @user\` 💥 - Slap someone
+\`meow!bonk @user\` 🔨 - Bonk someone
+\`meow!bite @user\` 🦷 - Bite someone
+`
+            },
 
             {
                 name: "💰 Economy Commands",
@@ -134,8 +142,8 @@ if (message.content === "meow!help") {
 \`meow!leaderboard\` 🏆 - Richest users
 `
             },
-
-
+    
+            
             {
                 name: "😺 Fun Commands",
                 value:
@@ -143,15 +151,14 @@ if (message.content === "meow!help") {
 \`meow\` 🐱 - Say hello to the bot
 `
             },
-{
-    name: "💞 Social Commands",
-    value:
+
+            {
+                name: "💞 Social Commands",
+                value:
 `
 \`meow!ship @user1 @user2\` 💖 - Check compatibility
 `
-},
-
-
+            }
 
         ],
 
@@ -161,11 +168,12 @@ if (message.content === "meow!help") {
     };
 
 
-   return message.channel.send({
-    embeds: [helpEmbed]
-});
+    return message.channel.send({
+        embeds: [helpEmbed]
+    });
 
 }
+
 // Economy Commands
 
 const economy = getEconomy();
@@ -319,7 +327,9 @@ if (message.content === "meow!leaderboard") {
                 "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExcG9mNmRuaTZ5MG94Nmh3MGExamhtaXQ2emFrZTVuNWJudXJ6bThjaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zkppEMFvRX5FC/giphy.gif",
                 "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcXlsZjB1MHVtczdvZzI1MTB2NDd4MXZraXRxMzJtZGNzaWlpcTNiMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jR22gdcPiOLaE/giphy.gif",
                 "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExamgzZ3kzMjl4OXo1aHdobXY2d3RjeG4xZTgwdWlwdnkyODVzanpsYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/wOtkVwroA6yzK/giphy.gif",
-                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDZ5NzNyazFwYm5jNHl3MW01cjZtZGx5aDRjbHVka3I3b3pzcmh3NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QweWddrIQxlfi/giphy.gif"
+                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDZ5NzNyazFwYm5jNHl3MW01cjZtZGx5aDRjbHVka3I3b3pzcmh3NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QweWddrIQxlfi/giphy.gif",
+                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzJyYnRoYmp0YzI4bW90dnQ1ZGhlaXRuNGV5em0zcGV5a2MyOHd1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qfQgXxBz1nvWEbOxyb/giphy.gif",
+                "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnd6ZXowM2ZqZHo1MGFvYW9qdnZ3aXl0ZjFheG9vbXRhOXI4bmE3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lx8z9ra4yYgtEDb7gq/giphy.gif"
             ]
         },
 
@@ -340,6 +350,8 @@ if (message.content === "meow!leaderboard") {
                 "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcnNpbHNoNTA1bXg2MWVwNXg4eTBjNzcyZm9naG5qdHR2b2doNzI0OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BXrwTdoho6hkQ/giphy.gif",
                 "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExejFsY2ZocDdjN20yNmJqeWJpbHJwNmxvemF3OWw4MGU5eXd0NXI5dCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Y8wCpaKI9PUBO/giphy.gif",
                 "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGE1bWtvMDBlMXlmNGcxbWtqM2psMmp5Y2htMHY4cTVxdXJ0bzI5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/bQATeUxCoCFr2/giphy.gif",
+                "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXdmZjE1NTQzMHloNnZsYjdocjFubmhveWl1NHp4eTNnNTgzd2wwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Y9bboRSDSw0CezsCji/giphy.gif",
+                "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjM0OTZ0NmI2aW80ZmxwY3lyaXM1d3d5dWpxMWJxdHJtemU5ZWY5ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/c7G6drkobIQXRJwX5v/giphy.gif"
 
             ]
         },
@@ -350,16 +362,40 @@ if (message.content === "meow!leaderboard") {
                 "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGgwZXVuYzJvZzlrNWxvcnphM2VqbTZlMnhwc2V0ejdpY2NkajI0ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUNd9HZq1itMkiK652/giphy.gif",
                 "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXUxNjVmcTMyYWdyb2JqY2dnNHl0c3hjd2FtZGV4MXEzN3hyd2pjcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUO4t2gkWBxDi/giphy.gif",
                 "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDB4N2RybjZmMXA3YjhlN3NpcTZzY3p4YmtpN21tcTl1cTFyMDFrYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WvzGVdiVRNq8qtWPKu/giphy.gif",
-                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWl4dGV1NGRhb2RqdDFqOXRsYmNlb3lsdnJ3cGVoM2tyZWdydzZrNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WvzGVdiVRNq8qtWPKu/giphy.gif"
+                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWl4dGV1NGRhb2RqdDFqOXRsYmNlb3lsdnJ3cGVoM2tyZWdydzZrNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WvzGVdiVRNq8qtWPKu/giphy.gif",
+                "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDRqb2oxajczYmE5eXhrZHB3d2RpaHhpOWx5cDM3NHNrd2h3dXZuZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/a7HKjDb3UJ0kM/giphy.gif"
             ]
-        }
+        },
+       
+        bonk: {
+            text: "bonks",
+            gifs: [
+                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGVqamp2b3I5bmM1M3AxaTd5YmQ1OGs2bTF5bjI4dnM2dmxmeTk3OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rfHc3U73N07tKPgCvJ/giphy.gif",
+                "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcmRyYmF5OHR6MTB1N29kcnJpbG5jcTg4Y29icnJ6ZzQ5bmszeTF0OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rtCxlwzJhP3tsmaIAS/giphy.gif",
+                "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmJ1NnM5NXhobzB0am5zNG54aWVpdnVkd3FwYmo2OG4yeno5dzFkOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xjHj7TPdbCN8I/giphy.gif",
+                "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWt1djllNm1vMW5ja3I0Y2QxaWE3Ym5xanRncXBnbGJyazZka205eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7xV8FFg0ztGsseOTEd/giphy.gif"
+            ]
+        },
 
+        bite: {
+        text: "bites",
+        gifs: [
+            "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3FwNGdzNjZ5azRyeHkweTZrajA0endjN3hhMnpyNWpyZ24wa3ZnMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lrMUMn9lnpaJDsvP0u/giphy.gif",
+            "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjZkNDViaHdwbTNiN3hwZmkxYW9vM2FoNWRtd21pemVvY2JiaHRyaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mEMRAZYygRyk8/giphy.gif",
+            "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGFzYjRybTlraGR0Ymx0aHJ3Nm1tdHJpMHVyYXBhZnNicWh4dnB2NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b6mpA0JrIUsFSdhG9q/giphy.gif",
+            "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2Z4M2ttc2pxOWxocTV2dGI1YzluZzR2Y2c4dnphbzVxMG5jMjZ3aiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/U1wMHRq7bnuInYaVlB/giphy.gif",
+            "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3FzMXFjM2M4ZXBsdHczd29mM2dubmo0bHN3M2oweWRuc3VoNTVuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W5tiV5EyW4TL4xToti/giphy.gif"
+        ]
+       }
     };
 
 
-   for (const command in interactions) {
+  for (const command in interactions) {
 
-    if (message.content === `meow!${command}` || message.content.startsWith(`meow!${command} `)) {
+    if (
+        message.content === `meow!${command}` ||
+        message.content.startsWith(`meow!${command} `)
+    ) {
 
         const user = message.mentions.users.first();
 
@@ -386,10 +422,12 @@ if (message.content === "meow!leaderboard") {
                 }
             ]
         });
+
     }
 
-   }
-   });
+}
+
+}); // closes client.on("messageCreate")
 
 
 client.login(process.env.TOKEN);
