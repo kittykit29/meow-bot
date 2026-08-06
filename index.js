@@ -3,6 +3,7 @@ require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 
 const fs = require("fs");
+const workCooldown = new Map();
 
 const economyFile = "./database/economy.json";
 
@@ -175,8 +176,6 @@ if (message.content === "meow!help") {
 
 // Economy Commands
 
-const economy = getEconomy();
-
 
 // Balance
 if (message.content === "meow!bal") {
@@ -211,9 +210,29 @@ if (message.content === "meow!daily") {
 
 }
 
-// Work
+// Work cooldown (2 minutes)
+
 if (message.content === "meow!work") {
 
+    const cooldownTime = 2 * 60 * 1000;
+    const now = Date.now();
+
+    const userCooldown = workCooldown.get(message.author.id);
+
+    if (userCooldown && now - userCooldown < cooldownTime) {
+        const remaining = cooldownTime - (now - userCooldown);
+        const seconds = Math.ceil(remaining / 1000);
+
+        return message.reply(
+            `😿 Olelele can't u wait for 2 mins? try try...\n⏳ Come back in **${seconds} seconds**!`
+        );
+    }
+
+    // Start cooldown
+    workCooldown.set(message.author.id, now);
+
+
+    // Your original work code
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
 
@@ -234,7 +253,6 @@ if (message.content === "meow!work") {
     message.reply(
         `${job}!\nYou earned **${amount} coins** 💰`
     );
-
 }
 
 
