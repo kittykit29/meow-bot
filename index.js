@@ -371,6 +371,74 @@ if (message.content.startsWith("meow!pay")) {
     );
 }
 
+// Flip Command
+if (message.content.startsWith("meow!flip")) {
+
+    const economy = getEconomy();
+    createUser(message.author.id);
+
+    const user = economy[message.author.id];
+
+    const args = message.content.split(" ");
+    const bet = Number(args[1]);
+
+    if (!bet) {
+        return message.reply("🎰 **Meow Coin Flip**\n\nUsage: `meow!flip <amount>`\nExample: `meow!flip 250`");
+    }
+
+    if (bet <= 0) {
+        return message.reply("😿 You need to bet more than **0 coins**!");
+    }
+
+    if (user.coins < bet) {
+        return message.reply(`😿 You don't have enough coins!\n💰 Your Balance: **${user.coins} coins**`);
+    }
+
+
+    const flipMessage = await message.reply(
+        "🎰 **Meow Coin Flip**\n\n🪙 Flipping the coin..."
+    );
+
+
+    setTimeout(() => {
+
+        const result = Math.random() < 0.5 ? "Heads" : "Tails";
+        const win = Math.random() < 0.5;
+
+
+        if (win) {
+
+            user.coins += bet;
+
+            saveEconomy(economy);
+
+            flipMessage.edit(
+                `🎰 **Meow Coin Flip**\n\n` +
+                `🪙 The coin landed on **${result}!**\n\n` +
+                `🎉 You won **${bet} coins**!\n` +
+                `💰 New Balance: **${user.coins} coins**`
+            );
+
+        } else {
+
+            user.coins -= bet;
+
+            saveEconomy(economy);
+
+            flipMessage.edit(
+                `🎰 **Meow Coin Flip**\n\n` +
+                `🪙 The coin landed on **${result}!**\n\n` +
+                `😿 You lost **${bet} coins**!\n` +
+                `💰 New Balance: **${user.coins} coins**`
+            );
+
+        }
+
+
+    }, 2000);
+
+}
+
 
 // Leaderboard
 if (message.content === "meow!leaderboard") {
