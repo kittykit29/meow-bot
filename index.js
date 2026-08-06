@@ -22,11 +22,9 @@ function createUser(id) {
             coins: 0,
             daily: 0
         };
-
-        saveEconomy(economy);
     }
 
-    return economy[id];
+    return economy;
 }
 
 const client = new Client({
@@ -194,20 +192,20 @@ if (message.content === "meow!bal") {
 // Daily
 if (message.content === "meow!daily") {
 
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
 
     const amount = Math.floor(Math.random() * 500) + 100;
 
     user.coins += amount;
 
-    saveEconomy(getEconomy());
+    saveEconomy(economy);
 
     message.reply(
         `🎁 You claimed your daily reward!\nYou got **${amount} coins** 💰`
     );
 
 }
-
 
 // Work
 if (message.content === "meow!work") {
