@@ -2,6 +2,8 @@ require("dotenv").config();
 
 const { Client, GatewayIntentBits } = require("discord.js");
 
+const workCooldown = new Map();
+
 const fs = require("fs");
 const workCooldown = new Map();
 
@@ -47,6 +49,37 @@ client.once("ready", () => {
 
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
+
+//Shop Items
+const shopItems = {
+
+    food: [
+        "🐟 Small Fish — 50 coins",
+        "🍣 Sushi Roll — 150 coins",
+        "🥛 Milk Bowl — 100 coins",
+        "🐠 Golden Fish — 500 coins"
+    ],
+
+    toys: [
+        "🧶 Yarn Ball — 100 coins",
+        "🪶 Feather Toy — 250 coins",
+        "🐭 Toy Mouse — 400 coins",
+        "🎀 Fancy Collar — 800 coins"
+    ],
+
+    house: [
+        "🛏️ Cozy Bed — 700 coins",
+        "🏡 Cat House — 1500 coins",
+        "👑 Royal Cat Castle — 5000 coins"
+    ],
+
+    special: [
+        "🍀 Lucky Paw — 1000 coins",
+        "💎 Diamond Fish — 2500 coins",
+        "👑 Cat Crown — 5000 coins"
+    ]
+
+};
 
     // Ship Command 💖
 if (message.content.startsWith("meow!ship")) {
@@ -144,6 +177,7 @@ if (message.content === "meow!help") {
 \`meow!beg\` 🥺 - Beg for coins
 \`meow!profile\` 👤 - View your profile
 \`meow!leaderboard\` 🏆 - Richest users
+\`meow!shop\` 🛒 - Browse the shop
 `
             },
     
@@ -179,6 +213,50 @@ if (message.content === "meow!help") {
 }
 
 // Economy Commands
+
+// Shop Command
+if (message.content === "meow!shop") {
+
+    const shopEmbed = {
+        color: 0xff69b4,
+        title: "🛒 Meow Shop",
+        description: "Buy cute items for your future pets! 🐾",
+
+        fields: [
+
+            {
+                name: "🐟 Food Shop",
+                value: shopItems.food.join("\n")
+            },
+
+            {
+                name: "🧶 Toy Shop",
+                value: shopItems.toys.join("\n")
+            },
+
+            {
+                name: "🏠 House Shop",
+                value: shopItems.house.join("\n")
+            },
+
+            {
+                name: "✨ Special Shop",
+                value: shopItems.special.join("\n")
+            }
+
+        ],
+
+        footer: {
+            text: "Use meow!buy <item> to purchase 🐱"
+        }
+    };
+
+
+    message.channel.send({
+        embeds: [shopEmbed]
+    });
+
+}
 
 
 // Balance
