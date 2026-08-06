@@ -221,6 +221,7 @@ if (message.content === "meow!help") {
 \`meow!profile\` 👤 - View your profile
 \`meow!leaderboard\` 🏆 - Richest users
 \`meow!shop\` 🛒 - Browse the shop
+\`meow!inventory\` 🎒 - View your items
 `
             },
     
@@ -496,6 +497,35 @@ if (message.content.startsWith("meow!buy")) {
         `💰 Spent: **${product.price} coins**\n` +
         `💵 Remaining Balance: **${user.coins} coins**`
     );
+
+}
+
+// Inventory Command
+if (message.content === "meow!inventory") {
+
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
+
+    if (user.inventory.length === 0) {
+        return message.reply(
+            "🎒 Your inventory is empty!\nUse `meow!shop` to buy cute items 🐾"
+        );
+    }
+
+    const items = user.inventory
+        .map((item, index) => `${index + 1}. ${item}`)
+        .join("\n");
+
+
+    message.channel.send({
+        embeds: [
+            {
+                title: `🎒 ${message.author.username}'s Inventory`,
+                description: items,
+                color: 0xff69b4
+            }
+        ]
+    });
 
 }
 
