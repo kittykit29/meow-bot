@@ -48,34 +48,79 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
-//Shop Items
+// Shope items
 const shopItems = {
 
-    food: [
-        "🐟 Small Fish — 50 coins",
-        "🍣 Sushi Roll — 150 coins",
-        "🥛 Milk Bowl — 100 coins",
-        "🐠 Golden Fish — 500 coins"
-    ],
+    food: {
+        fish: {
+            name: "🐟 Small Fish",
+            price: 100
+        },
+        sushi: {
+            name: "🍣 Sushi Roll",
+            price: 250
+        },
+        milk: {
+            name: "🥛 Milk Bowl",
+            price: 300
+        },
+        goldfish: {
+            name: "🐠 Golden Fish",
+            price: 600
+        }
+    },
 
-    toys: [
-        "🧶 Yarn Ball — 100 coins",
-        "🪶 Feather Toy — 250 coins",
-        "🐭 Toy Mouse — 400 coins",
-        "🎀 Fancy Collar — 800 coins"
-    ],
 
-    house: [
-        "🛏️ Cozy Bed — 700 coins",
-        "🏡 Cat House — 1500 coins",
-        "👑 Royal Cat Castle — 5000 coins"
-    ],
+    toys: {
+        yarn: {
+            name: "🧶 Yarn Ball",
+            price: 100
+        },
+        feather: {
+            name: "🪶 Feather Toy",
+            price: 250
+        },
+        mouse: {
+            name: "🐭 Toy Mouse",
+            price: 400
+        },
+        collar: {
+            name: "🎀 Fancy Collar",
+            price: 800
+        }
+    },
 
-    special: [
-        "🍀 Lucky Paw — 1000 coins",
-        "💎 Diamond Fish — 2500 coins",
-        "👑 Cat Crown — 5000 coins"
-    ]
+
+    house: {
+        bed: {
+            name: "🛏️ Cozy Bed",
+            price: 1000
+        },
+        house: {
+            name: "🏡 Cat House",
+            price: 4000
+        },
+        castle: {
+            name: "👑 Royal Cat Castle",
+            price: 9000
+        }
+    },
+
+
+    special: {
+        luckypaw: {
+            name: "🍀 Lucky Paw",
+            price: 20000
+        },
+        diamondfish: {
+            name: "💎 Diamond Fish",
+            price: 30000
+        },
+        crown: {
+            name: "👑 Cat Crown",
+            price: 50000
+        }
+    }
 
 };
 
@@ -372,6 +417,72 @@ if (message.content === "meow!beg") {
 
     message.reply(
         `🥺 Someone gave you **${amount} coins**`
+    );
+
+}
+
+// Buy Command
+if (message.content.startsWith("meow!buy")) {
+
+    const args = message.content.split(" ");
+    const item = args[1]?.toLowerCase();
+
+
+    if (!item) {
+        return message.reply(
+            "🛒 Usage: `meow!buy <item>`\nExample: `meow!buy yarn`"
+        );
+    }
+
+
+    let product = null;
+
+
+    // Search all categories
+    for (const category in shopItems) {
+
+        if (shopItems[category][item]) {
+            product = shopItems[category][item];
+            break;
+        }
+
+    }
+
+
+    if (!product) {
+        return message.reply(
+            "😿 That item doesn't exist!\nUse `meow!shop` to see available items."
+        );
+    }
+
+
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
+
+
+    if (user.coins < product.price) {
+        return message.reply(
+            `😿 Not enough coins!\n\n` +
+            `💰 Need: **${product.price} coins**\n` +
+            `Your Balance: **${user.coins} coins**`
+        );
+    }
+
+
+    user.coins -= product.price;
+
+
+    user.inventory.push(product.name);
+
+
+    saveEconomy(economy);
+
+
+    message.reply(
+        `🛒 **Purchase Successful!**\n\n` +
+        `${product.name}\n` +
+        `💰 Spent: **${product.price} coins**\n` +
+        `💵 Remaining Balance: **${user.coins} coins**`
     );
 
 }
