@@ -180,10 +180,12 @@ if (message.content === "meow!help") {
 // Balance
 if (message.content === "meow!bal") {
 
-    const economy = createUser(message.author.id);
+    const economy = getEconomy();
     const user = economy[message.author.id];
 
-    saveEconomy(economy);
+    if (!user) {
+        return message.reply("😺 You don't have an account yet! Try `meow!work` first.");
+    }
 
     message.reply(
         `💰 ${message.author.username}'s balance: **${user.coins} coins**`
@@ -198,9 +200,29 @@ if (message.content === "meow!daily") {
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
 
+    const cooldownTime = 24 * 60 * 60 * 1000; // 24 hours
+    const now = Date.now();
+
+    if (user.daily && now - user.daily < cooldownTime) {
+
+        const remaining = cooldownTime - (now - user.daily);
+
+        const hours = Math.floor(remaining / (1000 * 60 * 60));
+        const minutes = Math.floor(
+            (remaining % (1000 * 60 * 60)) / (1000 * 60)
+        );
+
+        return message.reply(
+            `😿 You already claimed your daily reward!\n⏳ Come back in **${hours}h ${minutes}m**`
+        );
+    }
+
     const amount = Math.floor(Math.random() * 500) + 100;
 
     user.coins += amount;
+
+    // Save claim time
+    user.daily = now;
 
     saveEconomy(economy);
 
