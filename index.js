@@ -25,6 +25,8 @@ function createUser(id) {
             inventory: [],
             pet: null
         };
+
+        saveEconomy(economy);
     }
 
     return economy;
@@ -43,7 +45,7 @@ client.once("ready", () => {
     console.log(`${client.user.tag} is online! 😺`);
 });
 
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
     // Ship Command 💖
@@ -374,10 +376,8 @@ if (message.content.startsWith("meow!pay")) {
 // Flip Command
 if (message.content.startsWith("meow!flip")) {
 
-    const economy = getEconomy();
-    createUser(message.author.id);
-
-    const user = economy[message.author.id];
+   const economy = createUser(message.author.id);
+const user = economy[message.author.id];
 
     const args = message.content.split(" ");
     const bet = Number(args[1]);
