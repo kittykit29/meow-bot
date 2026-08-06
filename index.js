@@ -21,7 +21,9 @@ function createUser(id) {
     if (!economy[id]) {
         economy[id] = {
             coins: 0,
-            daily: 0
+            daily: 0,
+            inventory: [],
+            pet: null
         };
     }
 
@@ -319,6 +321,54 @@ if (message.content === "meow!profile") {
         ]
     });
 
+}
+
+// Pay
+if (message.content.startsWith("meow!pay")) {
+
+    const args = message.content.split(" ");
+
+    const target = message.mentions.users.first();
+
+    if (!target) {
+        return message.reply(
+            "😿 Mention someone to pay!\nExample: `meow!pay @user 100`"
+        );
+    }
+
+    if (target.id === message.author.id) {
+        return message.reply("🙀 You can't pay yourself!");
+    }
+
+    const amount = parseInt(args[2]);
+
+    if (isNaN(amount) || amount <= 0) {
+        return message.reply("💰 Enter a valid amount!");
+    }
+
+    const economy = createUser(message.author.id);
+    createUser(target.id);
+
+    const sender = economy[message.author.id];
+
+    // Reload economy to make sure both users exist
+    const updatedEconomy = getEconomy();
+
+    const receiver = updatedEconomy[target.id];
+    const senderUpdated = updatedEconomy[message.author.id];
+
+    if (senderUpdated.coins < amount) {
+        return message.reply("😿 You don't have enough coins!");
+    }
+
+    senderUpdated.coins -= amount;
+    receiver.coins += amount;
+
+    saveEconomy(updatedEconomy);
+
+    message.reply(
+        `💸 You sent **${amount} coins** to ${target}!`
+    );
 }
 
 
