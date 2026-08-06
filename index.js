@@ -27,6 +27,7 @@ function createUser(id) {
     return economy;
 }
 
+ 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -180,7 +181,10 @@ const economy = getEconomy();
 // Balance
 if (message.content === "meow!bal") {
 
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
+
+    saveEconomy(economy);
 
     message.reply(
         `💰 ${message.author.username}'s balance: **${user.coins} coins**`
@@ -210,7 +214,8 @@ if (message.content === "meow!daily") {
 // Work
 if (message.content === "meow!work") {
 
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
 
     const jobs = [
         "🐱 Cat cafe worker",
@@ -220,12 +225,11 @@ if (message.content === "meow!work") {
     ];
 
     const job = jobs[Math.floor(Math.random() * jobs.length)];
-
     const amount = Math.floor(Math.random() * 300) + 50;
 
     user.coins += amount;
 
-    saveEconomy(getEconomy());
+    saveEconomy(economy);
 
     message.reply(
         `${job}!\nYou earned **${amount} coins** 💰`
@@ -237,13 +241,14 @@ if (message.content === "meow!work") {
 // Beg
 if (message.content === "meow!beg") {
 
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
 
     const amount = Math.floor(Math.random() * 100);
 
     user.coins += amount;
 
-    saveEconomy(getEconomy());
+    saveEconomy(economy);
 
     message.reply(
         `🥺 Someone gave you **${amount} coins**`
@@ -251,11 +256,13 @@ if (message.content === "meow!beg") {
 
 }
 
-
 // Profile
 if (message.content === "meow!profile") {
 
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+    const user = economy[message.author.id];
+
+    saveEconomy(economy);
 
     message.channel.send({
         embeds: [
