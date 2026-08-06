@@ -2,8 +2,6 @@ require("dotenv").config();
 
 const { Client, GatewayIntentBits } = require("discord.js");
 
-const workCooldown = new Map();
-
 const fs = require("fs");
 const workCooldown = new Map();
 
