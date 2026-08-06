@@ -269,22 +269,34 @@ if (message.content === "meow!shop") {
 
             {
                 name: "🐟 Food Shop",
-                value: shopItems.food.join("\n")
+                value:
+                Object.values(shopItems.food)
+                .map(item => `${item.name} — 💰 ${item.price} coins`)
+                .join("\n")
             },
 
             {
                 name: "🧶 Toy Shop",
-                value: shopItems.toys.join("\n")
+                value:
+                Object.values(shopItems.toys)
+                .map(item => `${item.name} — 💰 ${item.price} coins`)
+                .join("\n")
             },
 
             {
                 name: "🏠 House Shop",
-                value: shopItems.house.join("\n")
+                value:
+                Object.values(shopItems.house)
+                .map(item => `${item.name} — 💰 ${item.price} coins`)
+                .join("\n")
             },
 
             {
                 name: "✨ Special Shop",
-                value: shopItems.special.join("\n")
+                value:
+                Object.values(shopItems.special)
+                .map(item => `${item.name} — 💰 ${item.price} coins`)
+                .join("\n")
             }
 
         ],
