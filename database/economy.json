@@ -1,8 +1,10 @@
 {
   "1403093633338441809": {
-    "coins": 228,
+    "coins": 215,
     "daily": 0,
-    "inventory": [],
+    "inventory": [
+      "🥛 Milk Bowl"
+    ],
     "pet": null
   },
   "1258337258474307729": {

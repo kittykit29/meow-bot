@@ -144,12 +144,15 @@ if (message.content.startsWith("meow!ship")) {
 
     let messageText;
 
-    if (percentage >= 90) {
-        messageText = "💞 Perfect match! Soulmate vibes!";
+    if (percentage == 100) {
+        messageText = "💞 Perfect match! Can't find any better than you guys!";
     } 
-    else if (percentage >= 70) {
+    else if (percentage >= 90) {
         messageText = "💕 Cuteissiii match!";
     } 
+     else if (percentage >= 70) {
+        messageText = "💕 Cuteissiii match!";
+    }
     else if (percentage >= 40) {
         messageText = "💗 There might be something there awwiiee!";
     } 
