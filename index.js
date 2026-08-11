@@ -4,6 +4,8 @@ const { Client, GatewayIntentBits } = require("discord.js");
 
 const fs = require("fs");
 const workCooldown = new Map();
+const duelChallenges = new Map();
+const activeDuels = new Map();
 
 const economyFile = "./database/economy.json";
 
@@ -234,6 +236,7 @@ if (message.content === "meow!help") {
                 value:
 `
 \`meow\` 🐱 - Say hello to the bot
+\`meow!joke\` 😂 - Get a random cat joke
 `
             },
 
@@ -501,6 +504,478 @@ if (message.content.startsWith("meow!buy")) {
         `💵 Remaining Balance: **${user.coins} coins**`
     );
 
+}
+
+// 🐱 Cat Duel
+if (message.content.startsWith("meow!duel")) {
+
+    const target = message.mentions.users.first();
+
+    if (!target) {
+        return message.reply(
+            "⚔️ Mention someone to challenge!\nExample: `meow!duel @user`"
+        );
+    }
+
+    if (target.id === message.author.id) {
+        return message.reply("😹 You can't duel yourself!");
+    }
+
+    if (target.bot) {
+        return message.reply("😿 You can't duel a bot!");
+    }
+
+    if (
+        activeDuels.has(message.author.id) ||
+        activeDuels.has(target.id)
+    ) {
+        return message.reply("⚔️ One of you is already in a duel!");
+    }
+
+    if (duelChallenges.has(target.id)) {
+        return message.reply(
+            "⚔️ That person already has a pending duel challenge!"
+        );
+    }
+
+    // Create challenge
+    duelChallenges.set(target.id, {
+        challenger: message.author.id,
+        target: target.id
+    });
+
+    const challengeMessage = await message.reply(
+        `⚔️ **CAT DUEL CHALLENGE!**\n\n` +
+        `${message.author} has challenged ${target}!\n\n` +
+        `${target}, do you accept?\n\n` +
+        `🟢 Accept\n` +
+        `🔴 Reject\n\n` +
+        `⏳ You have **30 seconds**!`
+    );
+
+    await challengeMessage.react("🟢");
+    await challengeMessage.react("🔴");
+
+    const filter = (reaction, user) => {
+        return (
+            ["🟢", "🔴"].includes(reaction.emoji.name) &&
+            user.id === target.id
+        );
+    };
+
+    const collector = challengeMessage.createReactionCollector({
+        filter,
+        max: 1,
+        time: 30000
+    });
+
+    collector.on("collect", async (reaction) => {
+
+        duelChallenges.delete(target.id);
+
+        // ❌ REJECT
+        if (reaction.emoji.name === "🔴") {
+
+            return challengeMessage.edit(
+                `❌ **Duel declined!**\n\n` +
+                `${target} declined ${message.author}'s challenge.`
+            );
+        }
+
+        // =========================
+        // ⚔️ DUEL START
+        // =========================
+
+        const player1 = message.author;
+        const player2 = target;
+
+        activeDuels.set(player1.id, true);
+        activeDuels.set(player2.id, true);
+
+        const duel = {
+            player1,
+            player2,
+
+            hp: {
+                [player1.id]: 100,
+                [player2.id]: 100
+            },
+
+            moves: {},
+
+            specialUsed: {
+                [player1.id]: false,
+                [player2.id]: false
+            }
+        };
+
+        const battleMessage = await challengeMessage.edit(
+            `⚔️ **CAT DUEL STARTED!**\n\n` +
+            `${player1} 🐱 VS 🐱 ${player2}\n\n` +
+            `❤️ ${player1.username}: **100 HP**\n` +
+            `❤️ ${player2.username}: **100 HP**\n\n` +
+            `⚔️ **Attack** — Deal normal damage\n` +
+            `🛡️ **Defend** — Reduce incoming damage\n` +
+            `✨ **Special** — Powerful attack (once per duel)\n\n` +
+            `⏳ Choose your move!`
+        );
+
+        await battleMessage.react("⚔️");
+        await battleMessage.react("🛡️");
+        await battleMessage.react("✨");
+
+        let currentRound = 1;
+
+        // =========================
+        // RUN ROUND
+        // =========================
+
+        const runRound = async () => {
+
+            duel.moves = {};
+
+            await battleMessage.edit(
+                `⚔️ **ROUND ${currentRound}!**\n\n` +
+                `${player1} 🐱 VS 🐱 ${player2}\n\n` +
+                `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
+                `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
+                `⚔️ Attack\n` +
+                `🛡️ Defend\n` +
+                `✨ Special\n\n` +
+                `⏳ You have **20 seconds**!`
+            );
+
+            const roundFilter = (reaction, user) => {
+                return (
+                    ["⚔️", "🛡️", "✨"].includes(reaction.emoji.name) &&
+                    [player1.id, player2.id].includes(user.id)
+                );
+            };
+
+            const roundCollector =
+                battleMessage.createReactionCollector({
+                    filter: roundFilter,
+                    time: 20000
+                });
+
+            roundCollector.on("collect", async (reaction, user) => {
+
+                // Already chose a move
+                if (duel.moves[user.id]) {
+                    return;
+                }
+
+                // Special already used
+                if (
+                    reaction.emoji.name === "✨" &&
+                    duel.specialUsed[user.id]
+                ) {
+
+                    try {
+                        await reaction.users.remove(user.id);
+                    } catch (error) {}
+
+                    return message.channel.send(
+                        `😿 ${user}, you already used your **Special** attack!`
+                    );
+                }
+
+                // Save move
+                duel.moves[user.id] = reaction.emoji.name;
+
+                // Mark special as used
+                if (reaction.emoji.name === "✨") {
+                    duel.specialUsed[user.id] = true;
+                }
+
+                // Remove the user's reaction so they can clearly see
+                // that their choice was registered.
+                try {
+                    await reaction.users.remove(user.id);
+                } catch (error) {}
+
+                // Stop collecting when BOTH players have chosen
+                if (
+                    duel.moves[player1.id] &&
+                    duel.moves[player2.id]
+                ) {
+                    roundCollector.stop("both_chosen");
+                }
+            });
+
+            roundCollector.on("end", async (collected, reason) => {
+
+                // =========================
+                // TIMEOUT
+                // =========================
+
+                if (
+                    !duel.moves[player1.id] ||
+                    !duel.moves[player2.id]
+                ) {
+
+                    activeDuels.delete(player1.id);
+                    activeDuels.delete(player2.id);
+
+                    return battleMessage.edit(
+                        `⏰ **DUEL TIMED OUT!**\n\n` +
+                        `Both players needed to choose a move within **20 seconds**.\n\n` +
+                        `🐱 ${player1.username}: ` +
+                        `${duel.moves[player1.id] || "❌ No move"}\n` +
+                        `🐱 ${player2.username}: ` +
+                        `${duel.moves[player2.id] || "❌ No move"}`
+                    );
+                }
+
+                // =========================
+                // GET MOVES
+                // =========================
+
+                const move1 = duel.moves[player1.id];
+                const move2 = duel.moves[player2.id];
+
+                let damage1 = 0;
+                let damage2 = 0;
+
+                // =========================
+                // ⚔️ ATTACK VS ATTACK
+                // =========================
+
+                if (
+                    move1 === "⚔️" &&
+                    move2 === "⚔️"
+                ) {
+
+                    damage1 = Math.floor(Math.random() * 11) + 15;
+                    damage2 = Math.floor(Math.random() * 11) + 15;
+                }
+
+                // =========================
+                // ⚔️ ATTACK VS 🛡️ DEFEND
+                // =========================
+
+                else if (
+                    move1 === "⚔️" &&
+                    move2 === "🛡️"
+                ) {
+
+                    damage2 = Math.floor(Math.random() * 6) + 3;
+                }
+
+                else if (
+                    move1 === "🛡️" &&
+                    move2 === "⚔️"
+                ) {
+
+                    damage1 = Math.floor(Math.random() * 6) + 3;
+                }
+
+                // =========================
+                // 🛡️ DEFEND VS DEFEND
+                // =========================
+
+                else if (
+                    move1 === "🛡️" &&
+                    move2 === "🛡️"
+                ) {
+
+                    damage1 = 0;
+                    damage2 = 0;
+                }
+
+                // =========================
+                // ✨ SPECIAL VS...
+                // =========================
+
+                else if (move1 === "✨") {
+
+                    damage2 = Math.floor(Math.random() * 16) + 25;
+
+                    // Player 2 attacks back
+                    if (move2 === "⚔️") {
+                        damage1 = Math.floor(Math.random() * 11) + 15;
+                    }
+
+                    // Defend reduces special
+                    else if (move2 === "🛡️") {
+                        damage2 = Math.floor(damage2 / 2);
+                    }
+                }
+
+                else if (move2 === "✨") {
+
+                    damage1 = Math.floor(Math.random() * 16) + 25;
+
+                    // Player 1 attacks back
+                    if (move1 === "⚔️") {
+                        damage2 = Math.floor(Math.random() * 11) + 15;
+                    }
+
+                    // Defend reduces special
+                    else if (move1 === "🛡️") {
+                        damage1 = Math.floor(damage1 / 2);
+                    }
+                }
+
+                // =========================
+                // APPLY DAMAGE
+                // =========================
+
+                duel.hp[player1.id] -= damage1;
+                duel.hp[player2.id] -= damage2;
+
+                duel.hp[player1.id] = Math.max(
+                    0,
+                    duel.hp[player1.id]
+                );
+
+                duel.hp[player2.id] = Math.max(
+                    0,
+                    duel.hp[player2.id]
+                );
+
+                // =========================
+                // CHECK WINNER
+                // =========================
+
+                if (
+                    duel.hp[player1.id] <= 0 ||
+                    duel.hp[player2.id] <= 0
+                ) {
+
+                    let winner = null;
+
+                    if (
+                        duel.hp[player1.id] <= 0 &&
+                        duel.hp[player2.id] <= 0
+                    ) {
+                        winner = null;
+                    }
+
+                    else if (duel.hp[player1.id] <= 0) {
+                        winner = player2;
+                    }
+
+                    else {
+                        winner = player1;
+                    }
+
+                    const economy = getEconomy();
+
+                    // Make sure both players have accounts
+                    if (!economy[player1.id]) {
+                        economy[player1.id] = {
+                            coins: 0,
+                            daily: 0,
+                            inventory: [],
+                            pet: null
+                        };
+                    }
+
+                    if (!economy[player2.id]) {
+                        economy[player2.id] = {
+                            coins: 0,
+                            daily: 0,
+                            inventory: [],
+                            pet: null
+                        };
+                    }
+
+                    // Winner reward
+                    if (winner) {
+                        economy[winner.id].coins += 100;
+                    }
+
+                    saveEconomy(economy);
+
+                    activeDuels.delete(player1.id);
+                    activeDuels.delete(player2.id);
+
+                    // DRAW
+                    if (!winner) {
+
+                        return battleMessage.edit(
+                            `⚔️ **CAT DUEL OVER!**\n\n` +
+                            `${player1} 🐱 VS 🐱 ${player2}\n\n` +
+                            `💥 **IT'S A DRAW!** 😹\n\n` +
+                            `❤️ ${player1.username}: **0 HP**\n` +
+                            `❤️ ${player2.username}: **0 HP**\n\n` +
+                            `🤝 Both cats fought until the very end!`
+                        );
+                    }
+
+                    // WINNER
+                    return battleMessage.edit(
+                        `🏆 **CAT DUEL OVER!** 🏆\n\n` +
+                        `${player1} 🐱 VS 🐱 ${player2}\n\n` +
+                        `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
+                        `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
+                        `👑 **${winner.username} WINS!** 🎉\n\n` +
+                        `💰 **+100 coins!**\n` +
+                        `🐾 What a cat fight!`
+                    );
+                }
+
+                // =========================
+                // ROUND RESULT
+                // =========================
+
+                await battleMessage.edit(
+                    `💥 **ROUND ${currentRound} RESULT!**\n\n` +
+                    `🐱 ${player1.username} used ${move1}\n` +
+                    `🐱 ${player2.username} used ${move2}\n\n` +
+                    `💥 ${player1.username} dealt **${damage2} damage**!\n` +
+                    `💥 ${player2.username} dealt **${damage1} damage**!\n\n` +
+                    `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
+                    `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
+                    `⏳ **Next round starting...**`
+                );
+
+                currentRound++;
+
+                setTimeout(runRound, 1500);
+            });
+        };
+
+        runRound();
+    });
+
+    // =========================
+    // CHALLENGE EXPIRED
+    // =========================
+
+    collector.on("end", (collected) => {
+
+        if (collected.size === 0) {
+
+            duelChallenges.delete(target.id);
+
+            challengeMessage.edit(
+                `⏰ **Duel expired!**\n\n` +
+                `${target} didn't respond within **30 seconds**.`
+            );
+        }
+    });
+}
+
+// Joke Command 😂
+if (message.content === "meow!joke") {
+
+    const jokes = [
+        "😹 Why did the bicycle fall over?\nBecause it was two-tired.",
+        "🐱Why can't your nose be 12 inches long?\nBecause then it would be a foot.",
+        "😹 What's orange and sounds like a parrot?\nA carrot.",
+        "🐾 Why don't eggs tell jokes?\nThey'd crack each other up!",
+        "😺 Why did the tomato blush?\nBecause it saw the salad dressing.",
+        "🐱 What do you call a cat that tells jokes?\nA comedi-cat!",
+        "😹 Why did the kitten join the internet?\nIt wanted to find the purr-fect website!",
+        "🐾What do you call a fish with no eyes?\nA fsh.",
+        "🐾Why did the melon jump into the lake?\nIt wanted to be a watermelon."
+    ];
+
+    const joke = jokes[Math.floor(Math.random() * jokes.length)];
+
+    message.reply(joke);
 }
 
 // Inventory Command
