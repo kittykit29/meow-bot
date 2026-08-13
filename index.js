@@ -238,6 +238,7 @@ if (message.content === "meow!help") {
 `
 \`meow\` 🐱 - Say hello to the bot
 \`meow!joke\` 😂 - Get a random cat joke
+\`meow!duel\` 🐱⚔️-Play a battle
 `
             },
 
