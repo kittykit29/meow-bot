@@ -1,11 +1,19 @@
 require("dotenv").config();
 
-const { Client, GatewayIntentBits } = require("discord.js");
+const {
+    Client,
+    GatewayIntentBits,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
 
 const fs = require("fs");
 const workCooldown = new Map();
 const duelChallenges = new Map();
 const activeDuels = new Map();
+const typeChallenges = new Map();
+const activeTypingGames = new Map();
 
 const economyFile = "./database/economy.json";
 
@@ -238,7 +246,8 @@ if (message.content === "meow!help") {
 `
 \`meow\` 🐱 - Say hello to the bot
 \`meow!joke\` 😂 - Get a random cat joke
-\`meow!duel\` 🐱⚔️-Play a battle
+\`meow!type\`⌨️ - Who types fast
+
 `
             },
 
@@ -508,457 +517,6 @@ if (message.content.startsWith("meow!buy")) {
 
 }
 
-// 🐱 Cat Duel
-if (message.content.startsWith("meow!duel")) {
-
-    const target = message.mentions.users.first();
-
-    if (!target) {
-        return message.reply(
-            "⚔️ Mention someone to challenge!\nExample: `meow!duel @user`"
-        );
-    }
-
-    if (target.id === message.author.id) {
-        return message.reply("😹 You can't duel yourself!");
-    }
-
-    if (target.bot) {
-        return message.reply("😿 You can't duel a bot!");
-    }
-
-    if (
-        activeDuels.has(message.author.id) ||
-        activeDuels.has(target.id)
-    ) {
-        return message.reply("⚔️ One of you is already in a duel!");
-    }
-
-    if (duelChallenges.has(target.id)) {
-        return message.reply(
-            "⚔️ That person already has a pending duel challenge!"
-        );
-    }
-
-    // Create challenge
-    duelChallenges.set(target.id, {
-        challenger: message.author.id,
-        target: target.id
-    });
-
-    const challengeMessage = await message.reply(
-        `⚔️ **CAT DUEL CHALLENGE!**\n\n` +
-        `${message.author} has challenged ${target}!\n\n` +
-        `${target}, do you accept?\n\n` +
-        `🟢 Accept\n` +
-        `🔴 Reject\n\n` +
-        `⏳ You have **30 seconds**!`
-    );
-
-    await challengeMessage.react("🟢");
-    await challengeMessage.react("🔴");
-
-    const filter = (reaction, user) => {
-        return (
-            ["🟢", "🔴"].includes(reaction.emoji.name) &&
-            user.id === target.id
-        );
-    };
-
-    const collector = challengeMessage.createReactionCollector({
-        filter,
-        max: 1,
-        time: 30000
-    });
-
-    collector.on("collect", async (reaction) => {
-
-        duelChallenges.delete(target.id);
-
-        // ❌ REJECT
-        if (reaction.emoji.name === "🔴") {
-
-            return challengeMessage.edit(
-                `❌ **Duel declined!**\n\n` +
-                `${target} declined ${message.author}'s challenge.`
-            );
-        }
-
-        // =========================
-        // ⚔️ DUEL START
-        // =========================
-
-        const player1 = message.author;
-        const player2 = target;
-
-        activeDuels.set(player1.id, true);
-        activeDuels.set(player2.id, true);
-
-        const duel = {
-            player1,
-            player2,
-
-            hp: {
-                [player1.id]: 100,
-                [player2.id]: 100
-            },
-
-            moves: {},
-
-            specialUsed: {
-                [player1.id]: false,
-                [player2.id]: false
-            }
-        };
-
-        const battleMessage = await challengeMessage.edit(
-            `⚔️ **CAT DUEL STARTED!**\n\n` +
-            `${player1} 🐱 VS 🐱 ${player2}\n\n` +
-            `❤️ ${player1.username}: **100 HP**\n` +
-            `❤️ ${player2.username}: **100 HP**\n\n` +
-            `⚔️ **Attack** — Deal normal damage\n` +
-            `🛡️ **Defend** — Reduce incoming damage\n` +
-            `✨ **Special** — Powerful attack (once per duel)\n\n` +
-            `⏳ Choose your move!`
-        );
-
-        await battleMessage.react("⚔️");
-        await battleMessage.react("🛡️");
-        await battleMessage.react("✨");
-
-        let currentRound = 1;
-
-        // =========================
-        // RUN ROUND
-        // =========================
-
-        const runRound = async () => {
-
-            duel.moves = {};
-
-            await battleMessage.edit(
-                `⚔️ **ROUND ${currentRound}!**\n\n` +
-                `${player1} 🐱 VS 🐱 ${player2}\n\n` +
-                `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
-                `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
-                `⚔️ Attack\n` +
-                `🛡️ Defend\n` +
-                `✨ Special\n\n` +
-                `⏳ You have **20 seconds**!`
-            );
-
-            const roundFilter = (reaction, user) => {
-                return (
-                    ["⚔️", "🛡️", "✨"].includes(reaction.emoji.name) &&
-                    [player1.id, player2.id].includes(user.id)
-                );
-            };
-
-            const roundCollector =
-                battleMessage.createReactionCollector({
-                    filter: roundFilter,
-                    time: 20000
-                });
-
-            roundCollector.on("collect", async (reaction, user) => {
-
-                // Already chose a move
-                if (duel.moves[user.id]) {
-                    return;
-                }
-
-                // Special already used
-                if (
-                    reaction.emoji.name === "✨" &&
-                    duel.specialUsed[user.id]
-                ) {
-
-                    try {
-                        await reaction.users.remove(user.id);
-                    } catch (error) {}
-
-                    return message.channel.send(
-                        `😿 ${user}, you already used your **Special** attack!`
-                    );
-                }
-
-                // Save move
-                duel.moves[user.id] = reaction.emoji.name;
-
-                // Mark special as used
-                if (reaction.emoji.name === "✨") {
-                    duel.specialUsed[user.id] = true;
-                }
-
-                // Remove the user's reaction so they can clearly see
-                // that their choice was registered.
-                try {
-                    await reaction.users.remove(user.id);
-                } catch (error) {}
-
-                // Stop collecting when BOTH players have chosen
-                if (
-                    duel.moves[player1.id] &&
-                    duel.moves[player2.id]
-                ) {
-                    roundCollector.stop("both_chosen");
-                }
-            });
-
-            roundCollector.on("end", async (collected, reason) => {
-
-                // =========================
-                // TIMEOUT
-                // =========================
-
-                if (
-                    !duel.moves[player1.id] ||
-                    !duel.moves[player2.id]
-                ) {
-
-                    activeDuels.delete(player1.id);
-                    activeDuels.delete(player2.id);
-
-                    return battleMessage.edit(
-                        `⏰ **DUEL TIMED OUT!**\n\n` +
-                        `Both players needed to choose a move within **20 seconds**.\n\n` +
-                        `🐱 ${player1.username}: ` +
-                        `${duel.moves[player1.id] || "❌ No move"}\n` +
-                        `🐱 ${player2.username}: ` +
-                        `${duel.moves[player2.id] || "❌ No move"}`
-                    );
-                }
-
-                // =========================
-                // GET MOVES
-                // =========================
-
-                const move1 = duel.moves[player1.id];
-                const move2 = duel.moves[player2.id];
-
-                let damage1 = 0;
-                let damage2 = 0;
-
-                // =========================
-                // ⚔️ ATTACK VS ATTACK
-                // =========================
-
-                if (
-                    move1 === "⚔️" &&
-                    move2 === "⚔️"
-                ) {
-
-                    damage1 = Math.floor(Math.random() * 11) + 15;
-                    damage2 = Math.floor(Math.random() * 11) + 15;
-                }
-
-                // =========================
-                // ⚔️ ATTACK VS 🛡️ DEFEND
-                // =========================
-
-                else if (
-                    move1 === "⚔️" &&
-                    move2 === "🛡️"
-                ) {
-
-                    damage2 = Math.floor(Math.random() * 6) + 3;
-                }
-
-                else if (
-                    move1 === "🛡️" &&
-                    move2 === "⚔️"
-                ) {
-
-                    damage1 = Math.floor(Math.random() * 6) + 3;
-                }
-
-                // =========================
-                // 🛡️ DEFEND VS DEFEND
-                // =========================
-
-                else if (
-                    move1 === "🛡️" &&
-                    move2 === "🛡️"
-                ) {
-
-                    damage1 = 0;
-                    damage2 = 0;
-                }
-
-                // =========================
-                // ✨ SPECIAL VS...
-                // =========================
-
-                else if (move1 === "✨") {
-
-                    damage2 = Math.floor(Math.random() * 16) + 25;
-
-                    // Player 2 attacks back
-                    if (move2 === "⚔️") {
-                        damage1 = Math.floor(Math.random() * 11) + 15;
-                    }
-
-                    // Defend reduces special
-                    else if (move2 === "🛡️") {
-                        damage2 = Math.floor(damage2 / 2);
-                    }
-                }
-
-                else if (move2 === "✨") {
-
-                    damage1 = Math.floor(Math.random() * 16) + 25;
-
-                    // Player 1 attacks back
-                    if (move1 === "⚔️") {
-                        damage2 = Math.floor(Math.random() * 11) + 15;
-                    }
-
-                    // Defend reduces special
-                    else if (move1 === "🛡️") {
-                        damage1 = Math.floor(damage1 / 2);
-                    }
-                }
-
-                // =========================
-                // APPLY DAMAGE
-                // =========================
-
-                duel.hp[player1.id] -= damage1;
-                duel.hp[player2.id] -= damage2;
-
-                duel.hp[player1.id] = Math.max(
-                    0,
-                    duel.hp[player1.id]
-                );
-
-                duel.hp[player2.id] = Math.max(
-                    0,
-                    duel.hp[player2.id]
-                );
-
-                // =========================
-                // CHECK WINNER
-                // =========================
-
-                if (
-                    duel.hp[player1.id] <= 0 ||
-                    duel.hp[player2.id] <= 0
-                ) {
-
-                    let winner = null;
-
-                    if (
-                        duel.hp[player1.id] <= 0 &&
-                        duel.hp[player2.id] <= 0
-                    ) {
-                        winner = null;
-                    }
-
-                    else if (duel.hp[player1.id] <= 0) {
-                        winner = player2;
-                    }
-
-                    else {
-                        winner = player1;
-                    }
-
-                    const economy = getEconomy();
-
-                    // Make sure both players have accounts
-                    if (!economy[player1.id]) {
-                        economy[player1.id] = {
-                            coins: 0,
-                            daily: 0,
-                            inventory: [],
-                            pet: null
-                        };
-                    }
-
-                    if (!economy[player2.id]) {
-                        economy[player2.id] = {
-                            coins: 0,
-                            daily: 0,
-                            inventory: [],
-                            pet: null
-                        };
-                    }
-
-                    // Winner reward
-                    if (winner) {
-                        economy[winner.id].coins += 100;
-                    }
-
-                    saveEconomy(economy);
-
-                    activeDuels.delete(player1.id);
-                    activeDuels.delete(player2.id);
-
-                    // DRAW
-                    if (!winner) {
-
-                        return battleMessage.edit(
-                            `⚔️ **CAT DUEL OVER!**\n\n` +
-                            `${player1} 🐱 VS 🐱 ${player2}\n\n` +
-                            `💥 **IT'S A DRAW!** 😹\n\n` +
-                            `❤️ ${player1.username}: **0 HP**\n` +
-                            `❤️ ${player2.username}: **0 HP**\n\n` +
-                            `🤝 Both cats fought until the very end!`
-                        );
-                    }
-
-                    // WINNER
-                    return battleMessage.edit(
-                        `🏆 **CAT DUEL OVER!** 🏆\n\n` +
-                        `${player1} 🐱 VS 🐱 ${player2}\n\n` +
-                        `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
-                        `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
-                        `👑 **${winner.username} WINS!** 🎉\n\n` +
-                        `💰 **+100 coins!**\n` +
-                        `🐾 What a cat fight!`
-                    );
-                }
-
-                // =========================
-                // ROUND RESULT
-                // =========================
-
-                await battleMessage.edit(
-                    `💥 **ROUND ${currentRound} RESULT!**\n\n` +
-                    `🐱 ${player1.username} used ${move1}\n` +
-                    `🐱 ${player2.username} used ${move2}\n\n` +
-                    `💥 ${player1.username} dealt **${damage2} damage**!\n` +
-                    `💥 ${player2.username} dealt **${damage1} damage**!\n\n` +
-                    `❤️ ${player1.username}: **${duel.hp[player1.id]} HP**\n` +
-                    `❤️ ${player2.username}: **${duel.hp[player2.id]} HP**\n\n` +
-                    `⏳ **Next round starting...**`
-                );
-
-                currentRound++;
-
-                setTimeout(runRound, 1500);
-            });
-        };
-
-        runRound();
-    });
-
-    // =========================
-    // CHALLENGE EXPIRED
-    // =========================
-
-    collector.on("end", (collected) => {
-
-        if (collected.size === 0) {
-
-            duelChallenges.delete(target.id);
-
-            challengeMessage.edit(
-                `⏰ **Duel expired!**\n\n` +
-                `${target} didn't respond within **30 seconds**.`
-            );
-        }
-    });
-}
 
 // Joke Command 😂
 if (message.content === "meow!joke") {
@@ -1146,6 +704,215 @@ const user = economy[message.author.id];
 
     }, 2000);
 
+}
+
+// ⌨️ Meow Typing Challenge
+if (message.content.startsWith("meow!type")) {
+
+    const target = message.mentions.users.first();
+
+    if (!target) {
+        return message.reply(
+            "⌨️ Mention someone to challenge!\nExample: `meow!type @user`"
+        );
+    }
+
+    if (target.id === message.author.id) {
+        return message.reply("😹 You can't challenge yourself!");
+    }
+
+    if (target.bot) {
+        return message.reply("😿 You can't challenge a bot!");
+    }
+
+    if (
+        typeChallenges.has(target.id) ||
+        activeTypingGames.has(target.id) ||
+        activeTypingGames.has(message.author.id)
+    ) {
+        return message.reply(
+            "⌨️ One of you is already in a typing challenge!"
+        );
+    }
+
+    typeChallenges.set(target.id, message.author.id);
+
+    const acceptButton = new ButtonBuilder()
+        .setCustomId("type_accept")
+        .setLabel("Accept")
+        .setEmoji("🟢")
+        .setStyle(ButtonStyle.Success);
+
+    const declineButton = new ButtonBuilder()
+        .setCustomId("type_decline")
+        .setLabel("Decline")
+        .setEmoji("🔴")
+        .setStyle(ButtonStyle.Danger);
+
+    const row = new ActionRowBuilder()
+        .addComponents(acceptButton, declineButton);
+
+    const challengeMessage = await message.reply({
+        content:
+            `⌨️ **MEOW TYPING CHALLENGE!**\n\n` +
+            `🐱 ${message.author} challenged ${target}!\n\n` +
+            `${target}, do you accept?\n\n` +
+            `⏳ You have **30 seconds**!`,
+        components: [row]
+    });
+
+    const collector = challengeMessage.createMessageComponentCollector({
+        time: 30000
+    });
+
+    collector.on("collect", async interaction => {
+
+        // Only the challenged person can answer
+        if (interaction.user.id !== target.id) {
+            return interaction.reply({
+                content: "😹 This challenge isn't for you!",
+                ephemeral: true
+            });
+        }
+
+        typeChallenges.delete(target.id);
+
+        if (interaction.customId === "type_decline") {
+
+            collector.stop("declined");
+
+            return interaction.update({
+                content:
+                    `❌ **Challenge declined!**\n\n` +
+                    `${target} declined ${message.author}'s typing challenge.`,
+                components: []
+            });
+        }
+
+        // =========================
+        // ACCEPTED
+        // =========================
+
+        collector.stop("accepted");
+
+        activeTypingGames.set(message.author.id, true);
+        activeTypingGames.set(target.id, true);
+
+        const sentences = [
+            "The fluffy cat jumped over the sleepy dog.",
+            "Three tiny kittens chased a golden fish.",
+            "My silly cat stole a piece of cheese.",
+            "The sleepy kitten was hiding under the table.",
+            "A curious cat found a mysterious box.",
+            "The orange cat loves playing with yarn.",
+            "Seven cats were sleeping in the sunny garden.",
+            "The little kitten climbed onto the cozy bed.",
+            "A mischievous cat knocked over the milk bowl."
+        ];
+
+        const sentence =
+            sentences[Math.floor(Math.random() * sentences.length)];
+
+        await interaction.update({
+            content:
+                `⌨️ **TYPING RACE!**\n\n` +
+                `🐱 ${message.author} VS ${target}\n\n` +
+                `Get ready...\n\n` +
+                `3️⃣\n` +
+                `2️⃣\n` +
+                `1️⃣\n\n` +
+                `⚡ **GO!**\n\n` +
+                `Type this EXACT sentence:\n\n` +
+                `> ${sentence}\n\n` +
+                `🏆 First correct answer wins!\n` +
+                `💰 **+150 coins**`,
+            components: []
+        });
+
+        const startTime = Date.now();
+
+        const messageFilter = msg => {
+            return (
+                !msg.author.bot &&
+                [message.author.id, target.id].includes(msg.author.id)
+            );
+        };
+
+        const typingCollector =
+            message.channel.createMessageCollector({
+                filter: messageFilter,
+                time: 30000
+            });
+
+        typingCollector.on("collect", async msg => {
+
+            if (msg.content.trim() !== sentence) {
+                return;
+            }
+
+            const winner = msg.author;
+            const time = ((Date.now() - startTime) / 1000).toFixed(2);
+
+            typingCollector.stop("winner");
+
+            const economy = getEconomy();
+
+            if (!economy[winner.id]) {
+                economy[winner.id] = {
+                    coins: 0,
+                    daily: 0,
+                    inventory: [],
+                    pet: null
+                };
+            }
+
+            economy[winner.id].coins += 150;
+
+            saveEconomy(economy);
+
+            activeTypingGames.delete(message.author.id);
+            activeTypingGames.delete(target.id);
+
+            await message.channel.send(
+                `🏆 **TYPING RACE OVER!**\n\n` +
+                `🥇 ${winner} **wins!**\n\n` +
+                `⚡ Time: **${time} seconds**\n` +
+                `💰 Reward: **+150 coins!**\n\n` +
+                `😹 Everyone else was too slow!`
+            );
+        });
+
+        typingCollector.on("end", async (collected, reason) => {
+
+            activeTypingGames.delete(message.author.id);
+            activeTypingGames.delete(target.id);
+
+            if (reason === "winner") return;
+
+            await message.channel.send(
+                `⏰ **TIME'S UP!**\n\n` +
+                `Nobody typed the sentence correctly!\n\n` +
+                `🐱 Better luck next time!`
+            );
+        });
+    });
+
+    collector.on("end", async (collected, reason) => {
+
+        if (reason === "accepted" || reason === "declined") return;
+
+        if (typeChallenges.has(target.id)) {
+
+            typeChallenges.delete(target.id);
+
+            await challengeMessage.edit({
+                content:
+                    `⏰ **Challenge expired!**\n\n` +
+                    `${target} didn't respond within 30 seconds.`,
+                components: []
+            });
+        }
+    });
 }
 
 
