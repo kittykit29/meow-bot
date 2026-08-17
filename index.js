@@ -14,6 +14,7 @@ const duelChallenges = new Map();
 const activeDuels = new Map();
 const typeChallenges = new Map();
 const activeTypingGames = new Map();
+const chatCooldown = new Map();
 
 const economyFile = "./database/economy.json";
 
@@ -58,6 +59,35 @@ client.once("ready", () => {
 
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
+
+client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+
+// 💬 Chat Coin Reward
+const chatCooldownTime = 30 * 1000; // 30 seconds
+const now = Date.now();
+
+const isCommand = message.content.startsWith("meow!");
+
+if (!isCommand) {
+
+    const lastChatReward = chatCooldown.get(message.author.id);
+
+    if (!lastChatReward || now - lastChatReward >= chatCooldownTime) {
+
+        const economy = createUser(message.author.id);
+        const user = economy[message.author.id];
+
+        user.coins += 5;
+
+        saveEconomy(economy);
+
+        chatCooldown.set(message.author.id, now);
+
+        // Optional reward notification
+        // message.react("💰");
+    }
+}
 
 // Shope items
 const shopItems = {
@@ -498,8 +528,8 @@ if (message.content.startsWith("meow!buy")) {
         );
     }
 
-    const economy = getEconomy();
-    const user = createUser(message.author.id);
+    const economy = createUser(message.author.id);
+const user = economy[message.author.id];
 
     // Check coins
     if (user.coins < item.price) {
@@ -1084,4 +1114,4 @@ if (message.content === "meow!leaderboard") {
 }); // closes client.on("messageCreate")
 
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN)});
