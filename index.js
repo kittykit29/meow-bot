@@ -450,71 +450,86 @@ if (message.content === "meow!beg") {
     );
 
 }
-
 // Buy Command
 if (message.content.startsWith("meow!buy")) {
 
-    const args = message.content.split(" ");
-    const item = args[1]?.toLowerCase();
+    const args = message.content.slice("meow!buy".length).trim();
 
-
-    if (!item) {
+    if (!args) {
         return message.reply(
-            "🛒 Usage: `meow!buy <item>`\nExample: `meow!buy yarn`"
+            "😺 Please tell me what you want to buy!\nExample: `meow!buy Golden Fish`"
         );
     }
 
+    const itemName = args.toLowerCase().trim();
 
-    let product = null;
+    const shopItems = [
+        // Food
+        { name: "Small Fish", price: 100 },
+        { name: "Sushi Roll", price: 250 },
+        { name: "Milk Bowl", price: 300 },
+        { name: "Golden Fish", price: 600 },
 
+        // Toys
+        { name: "Yarn Ball", price: 100 },
+        { name: "Feather Toy", price: 250 },
+        { name: "Toy Mouse", price: 400 },
+        { name: "Fancy Collar", price: 800 },
 
-    // Search all categories
-    for (const category in shopItems) {
+        // House
+        { name: "Cozy Bed", price: 1000 },
+        { name: "Cat House", price: 4000 },
+        { name: "Royal Cat Castle", price: 9000 },
 
-        if (shopItems[category][item]) {
-            product = shopItems[category][item];
-            break;
-        }
+        // Special
+        { name: "Lucky Paw", price: 20000 },
+        { name: "Diamond Fish", price: 30000 },
+        { name: "Cat Crown", price: 50000 }
+    ];
 
-    }
+    // Find item
+    const item = shopItems.find(
+        i => i.name.toLowerCase() === itemName
+    );
 
-
-    if (!product) {
+    if (!item) {
         return message.reply(
             "😿 That item doesn't exist!\nUse `meow!shop` to see available items."
         );
     }
 
+    const economy = getEconomy();
+    const user = createUser(message.author.id);
 
-    const economy = createUser(message.author.id);
-    const user = economy[message.author.id];
-
-
-    if (user.coins < product.price) {
+    // Check coins
+    if (user.coins < item.price) {
         return message.reply(
-            `😿 Not enough coins!\n\n` +
-            `💰 Need: **${product.price} coins**\n` +
-            `Your Balance: **${user.coins} coins**`
+            `😿 You don't have enough coins!\n\n` +
+            `💰 Price: **${item.price} coins**\n` +
+            `🪙 Your Balance: **${user.coins} coins**`
         );
     }
 
+    // Make sure inventory exists
+    if (!user.inventory) {
+        user.inventory = [];
+    }
 
-    user.coins -= product.price;
+    // Take coins
+    user.coins -= item.price;
 
+    // Add item
+    user.inventory.push(item.name);
 
-    user.inventory.push(product.name);
-
-
+    // Save
     saveEconomy(economy);
 
-
     message.reply(
-        `🛒 **Purchase Successful!**\n\n` +
-        `${product.name}\n` +
-        `💰 Spent: **${product.price} coins**\n` +
-        `💵 Remaining Balance: **${user.coins} coins**`
+        `🛍️ **Purchase Successful!**\n\n` +
+        `🐾 You bought **${item.name}**!\n` +
+        `💸 Spent: **${item.price} coins**\n` +
+        `💰 New Balance: **${user.coins} coins**`
     );
-
 }
 
 
