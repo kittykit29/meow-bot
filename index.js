@@ -60,6 +60,9 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
+    // Make all commands case-insensitive
+    const command = message.content.trim().toLowerCase();
+
 
 // 💬 Chat Coin Reward
 const chatCooldownTime = 60 * 1000; // 1 minute
@@ -171,40 +174,47 @@ const shopItems = {
 
 };
 
-    // Ship Command 💖
-if (message.content.startsWith("meow!ship")) {
+   // Ship Command 💖
+if (command.startsWith("meow!ship")) {
 
-    const users = message.mentions.users;
+    const users = [...message.mentions.users.values()];
 
-    if (users.size < 2) {
-        return message.reply(
-            "💖 Mention two people to ship them!\nExample: `meow!ship @user1 @user2`"
-        );
+    let user1;
+    let user2;
+
+    // No mentions = ship yourself ❤️
+    if (users.length === 0) {
+        user1 = message.author;
+        user2 = message.author;
     }
 
-    const userArray = [...users.values()];
+    // One mention = ship yourself with that person 💖
+    else if (users.length === 1) {
+        user1 = message.author;
+        user2 = users[0];
+    }
 
-    const user1 = userArray[0];
-    const user2 = userArray[1];
+    // Two or more mentions = ship the first two
+    else {
+        user1 = users[0];
+        user2 = users[1];
+    }
 
     const percentage = Math.floor(Math.random() * 101);
 
     let messageText;
 
-    if (percentage == 100) {
+    if (percentage === 100) {
         messageText = "💞 Perfect match! Can't find any better than you guys!";
-    } 
-    else if (percentage >= 90) {
-        messageText = "💕 Cuteissiii match!";
-    } 
-     else if (percentage >= 70) {
+    }
+    else if (percentage >= 70) {
         messageText = "💕 Cuteissiii match!";
     }
     else if (percentage >= 40) {
         messageText = "💗 There might be something there awwiiee!";
-    } 
+    }
     else {
-        messageText = "💔Ole Ole... Maybe just friends...";
+        messageText = "💔 Ole Ole... Maybe just friends...";
     }
 
     message.channel.send({
@@ -212,23 +222,23 @@ if (message.content.startsWith("meow!ship")) {
             {
                 title: "💖 Meow Love Calculator",
                 description:
-                `${user1} ❤️ ${user2}\n\n` +
-                `**Compatibility:** ${percentage}%\n\n` +
-                messageText,
+                    `${user1} ❤️ ${user2}\n\n` +
+                    `**Compatibility:** ${percentage}%\n\n` +
+                    messageText,
                 color: 0xff69b4
             }
         ]
     });
-
 }
 
+
     // Test command
-    if (message.content === "meow") {
+    if (command === "meow") {
         message.reply("Meow! 😺");
     }
 
 // Help Command
-if (message.content === "meow!help") {
+if (command === "meow!help") {
 
     console.log("HELP COMMAND USED");
 
@@ -312,7 +322,7 @@ if (message.content === "meow!help") {
 // Economy Commands
 
 // Shop Command
-if (message.content === "meow!shop") {
+if (command === "meow!shop") {
 
     const shopEmbed = {
         color: 0xff69b4,
@@ -369,7 +379,7 @@ if (message.content === "meow!shop") {
 
 
 // Balance
-if (message.content === "meow!bal") {
+if (command === "meow!bal") {
 
     const economy = getEconomy();
     const user = economy[message.author.id];
@@ -386,7 +396,7 @@ if (message.content === "meow!bal") {
 
 
 // Daily
-if (message.content === "meow!daily") {
+if (command === "meow!daily") {
 
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
@@ -425,7 +435,7 @@ if (message.content === "meow!daily") {
 
 // Work cooldown (2 minutes)
 
-if (message.content === "meow!work") {
+if (command === "meow!work") {
 
     const cooldownTime = 2 * 60 * 1000;
     const now = Date.now();
@@ -470,7 +480,7 @@ if (message.content === "meow!work") {
 
 
 // Beg
-if (message.content === "meow!beg") {
+if (command === "meow!beg") {
 
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
@@ -487,7 +497,7 @@ if (message.content === "meow!beg") {
 
 }
 // Buy Command
-if (message.content.startsWith("meow!buy")) {
+if (command.startsWith("meow!buy")) {
 
     const args = message.content.slice("meow!buy".length).trim();
 
@@ -570,7 +580,7 @@ const user = economy[message.author.id];
 
 
 // Joke Command 😂
-if (message.content === "meow!joke") {
+if (command === "meow!joke") {
 
     const jokes = [
         "😹 Why did the bicycle fall over?\nBecause it was two-tired.",
@@ -590,7 +600,7 @@ if (message.content === "meow!joke") {
 }
 
 // Inventory Command
-if (message.content === "meow!inventory") {
+if (command === "meow!inventory") {
 
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
@@ -619,7 +629,7 @@ if (message.content === "meow!inventory") {
 }
 
 // Profile
-if (message.content === "meow!profile") {
+if (command === "meow!profile") {
 
     const economy = createUser(message.author.id);
     const user = economy[message.author.id];
@@ -644,7 +654,7 @@ if (message.content === "meow!profile") {
 }
 
 // Pay
-if (message.content.startsWith("meow!pay")) {
+if (command.startsWith("meow!pay")) {
 
     const args = message.content.split(" ");
 
@@ -692,7 +702,7 @@ if (message.content.startsWith("meow!pay")) {
 }
 
 // Flip Command
-if (message.content.startsWith("meow!flip")) {
+if (command.startsWith("meow!flip")) {
 
    const economy = createUser(message.author.id);
 const user = economy[message.author.id];
@@ -758,7 +768,7 @@ const user = economy[message.author.id];
 }
 
 // ⌨️ Meow Typing Challenge
-if (message.content.startsWith("meow!type")) {
+if (command.startsWith("meow!type")) {
 
     const target = message.mentions.users.first();
 
@@ -968,7 +978,7 @@ if (message.content.startsWith("meow!type")) {
 
 
 // Leaderboard
-if (message.content === "meow!leaderboard") {
+if (command === "meow!leaderboard") {
 
     const users = Object.entries(getEconomy());
 
