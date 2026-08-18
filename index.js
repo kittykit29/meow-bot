@@ -60,11 +60,9 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
-client.on("messageCreate", async (message) => {
-    if (message.author.bot) return;
 
 // 💬 Chat Coin Reward
-const chatCooldownTime = 30 * 1000; // 30 seconds
+const chatCooldownTime = 60 * 1000; // 1 minute
 const now = Date.now();
 
 const isCommand = message.content.startsWith("meow!");
@@ -73,7 +71,15 @@ if (!isCommand) {
 
     const lastChatReward = chatCooldown.get(message.author.id);
 
-    if (!lastChatReward || now - lastChatReward >= chatCooldownTime) {
+    // First message starts their chat timer
+    if (!lastChatReward) {
+
+        chatCooldown.set(message.author.id, now);
+
+    }
+
+    // Give 5 coins after 1 minute
+    else if (now - lastChatReward >= chatCooldownTime) {
 
         const economy = createUser(message.author.id);
         const user = economy[message.author.id];
@@ -84,7 +90,7 @@ if (!isCommand) {
 
         chatCooldown.set(message.author.id, now);
 
-        // Optional reward notification
+        // Optional: uncomment if you want a reaction
         // message.react("💰");
     }
 }
@@ -1114,4 +1120,4 @@ if (message.content === "meow!leaderboard") {
 }); // closes client.on("messageCreate")
 
 
-client.login(process.env.TOKEN)});
+client.login(process.env.TOKEN);
