@@ -68,7 +68,7 @@ client.on("messageCreate", async (message) => {
 const chatCooldownTime = 60 * 1000; // 1 minute
 const now = Date.now();
 
-const isCommand = message.content.startsWith("meow!");
+const isCommand = command.startsWith("meow!");
 
 if (!isCommand) {
 
@@ -1090,22 +1090,22 @@ if (command === "meow!leaderboard") {
     };
 
 
-  for (const command in interactions) {
+for (const action in interactions) {
 
     if (
-        message.content === `meow!${command}` ||
-        message.content.startsWith(`meow!${command} `)
+        command === `meow!${action}` ||
+        command.startsWith(`meow!${action} `)
     ) {
 
         const user = message.mentions.users.first();
 
         if (!user) {
             return message.reply(
-                `🐱 Ole Ole! You have to mention someone!\nLike: \`meow!${command} @user\``
+                `🐱 Ole Ole! You have to mention someone!\nLike: \`meow!${action} @user\``
             );
         }
 
-        const data = interactions[command];
+        const data = interactions[action];
 
         const gif = data.gifs[
             Math.floor(Math.random() * data.gifs.length)
@@ -1124,10 +1124,8 @@ if (command === "meow!leaderboard") {
         });
 
     }
-
 }
 
-}); // closes client.on("messageCreate")
-
+});
 
 client.login(process.env.TOKEN);
