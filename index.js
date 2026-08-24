@@ -535,6 +535,7 @@ if (command === "meow!help") {
 \`meow\` 🐱 - Say hello to the bot
 \`meow!joke\` 😂 - Get a random cat joke
 \`meow!type\`⌨️ - Who types fast
+\`meow!guess\`🐾 - Guess the word
 
 `
             },
