@@ -15,6 +15,7 @@ const activeDuels = new Map();
 const typeChallenges = new Map();
 const activeTypingGames = new Map();
 const chatCooldown = new Map();
+const activeGuessGames = new Map();
 
 const economyFile = "./database/economy.json";
 
@@ -96,6 +97,247 @@ if (!isCommand) {
         // Optional: uncomment if you want a reaction
         // message.react("💰");
     }
+}
+
+// 🐱 Meow Guess the Word
+if (command === "meow!guess") {
+
+    // Don't allow two games in the same channel
+    if (activeGuessGames.has(message.channel.id)) {
+        return message.reply(
+            "😺 There's already a Guess the Word game happening here!\nGuess the current word first! 🐾"
+        );
+    }
+
+    const words = [
+        {
+            word: "cat",
+            clues: [
+                "🐾 I have four legs.",
+                "😺 I love to purr.",
+                "🐟 I might enjoy chasing fish."
+            ]
+        },
+        {
+            word: "pizza",
+            clues: [
+                "🍕 I am usually round.",
+                "🧀 I often have cheese.",
+                "🔥 I am usually cooked in an oven."
+            ]
+        },
+        {
+            word: "banana",
+            clues: [
+                "🍌 I am a fruit.",
+                "🟡 I am usually yellow.",
+                "🐒 Monkeys are famous for liking me."
+            ]
+        },
+        {
+            word: "ocean",
+            clues: [
+                "🌊 I contain lots of water.",
+                "🐟 Many fish live inside me.",
+                "🚢 Ships can travel across me."
+            ]
+        },
+        {
+            word: "pencil",
+            clues: [
+                "✏️ You can use me to write.",
+                "📚 Students often use me.",
+                "📝 I can be erased."
+            ]
+        },
+        {
+            word: "cookie",
+            clues: [
+                "🍪 I am usually sweet.",
+                "🍫 I can contain chocolate chips.",
+                "🥛 I go well with milk."
+            ]
+        },
+        {
+            word: "rainbow",
+            clues: [
+                "🌈 I can appear after rain.",
+                "☀️ You need sunlight for me to appear.",
+                "🎨 I have many colors."
+            ]
+        },
+        {
+            word: "guitar",
+            clues: [
+                "🎸 I am a musical instrument.",
+                "🎵 I have strings.",
+                "🎶 You can play music with me."
+            ]
+        },
+        {
+            word: "castle",
+            clues: [
+                "🏰 Kings and queens might live in me.",
+                "👑 I can have towers.",
+                "🐉 You might find me in fairy tales."
+            ]
+        },
+        {
+            word: "snow",
+            clues: [
+                "❄️ I am very cold.",
+                "☃️ You can make a snowman from me.",
+                "🤍 I am usually white."
+            ]
+        }
+    ];
+
+    const selected =
+        words[Math.floor(Math.random() * words.length)];
+
+    const game = {
+        word: selected.word,
+        clues: selected.clues
+    };
+
+    activeGuessGames.set(message.channel.id, game);
+
+    const gameMessage = await message.channel.send({
+        embeds: [
+            {
+                title: "🐱 Meow Guess the Word!",
+                description:
+                    `🔤 The word has **${game.word.length} letters**!\n\n` +
+                    `💡 **Clue 1:** ${game.clues[0]}\n\n` +
+                    `⏳ You have **30 seconds** to guess!\n\n` +
+                    `💰 Winner gets **+50 coins!**\n\n` +
+                    `🐾 Just type your guess in the chat!`,
+                color: 0xff69b4,
+                footer: {
+                    text: "Meow Bot • Guess the word!"
+                }
+            }
+        ]
+    });
+
+    // Give the second clue after 10 seconds
+    const clue2Timer = setTimeout(() => {
+
+        if (!activeGuessGames.has(message.channel.id)) return;
+
+        gameMessage.edit({
+            embeds: [
+                {
+                    title: "🐱 Meow Guess the Word!",
+                    description:
+                        `🔤 The word has **${game.word.length} letters**!\n\n` +
+                        `💡 **Clue 1:** ${game.clues[0]}\n\n` +
+                        `💡 **Clue 2:** ${game.clues[1]}\n\n` +
+                        `⏳ Hurry! **20 seconds left!**\n\n` +
+                        `💰 Winner gets **+50 coins!**`,
+                    color: 0xff69b4,
+                    footer: {
+                        text: "Meow Bot • Guess the word!"
+                    }
+                }
+            ]
+        });
+
+    }, 10000);
+
+    // Give the final clue after 20 seconds
+    const clue3Timer = setTimeout(() => {
+
+        if (!activeGuessGames.has(message.channel.id)) return;
+
+        gameMessage.edit({
+            embeds: [
+                {
+                    title: "🐱 Meow Guess the Word!",
+                    description:
+                        `🔤 The word has **${game.word.length} letters**!\n\n` +
+                        `💡 **Clue 1:** ${game.clues[0]}\n\n` +
+                        `💡 **Clue 2:** ${game.clues[1]}\n\n` +
+                        `💡 **FINAL CLUE:** ${game.clues[2]}\n\n` +
+                        `🚨 **10 seconds left!**\n\n` +
+                        `💰 Winner gets **+50 coins!**`,
+                    color: 0xff69b4,
+                    footer: {
+                        text: "Meow Bot • FINAL CLUE!"
+                    }
+                }
+            ]
+        });
+
+    }, 20000);
+
+    // Listen for guesses
+    const guessCollector =
+        message.channel.createMessageCollector({
+            filter: msg => !msg.author.bot,
+            time: 30000
+        });
+
+    guessCollector.on("collect", msg => {
+
+        const guess = msg.content.trim().toLowerCase();
+
+        if (guess !== game.word) {
+            return;
+        }
+
+        // Correct answer!
+        guessCollector.stop("winner");
+
+        clearTimeout(clue2Timer);
+        clearTimeout(clue3Timer);
+
+        activeGuessGames.delete(message.channel.id);
+
+        const economy = createUser(msg.author.id);
+        const user = economy[msg.author.id];
+
+        user.coins += 50;
+
+        saveEconomy(economy);
+
+        message.channel.send({
+            embeds: [
+                {
+                    title: "🎉 CORRECT!",
+                    description:
+                        `🏆 ${msg.author} guessed the word!\n\n` +
+                        `🐾 The word was **${game.word.toUpperCase()}**!\n\n` +
+                        `💰 Reward: **+50 coins!**\n\n` +
+                        `😺 Meow Bot is impressed!`,
+                    color: 0xff69b4
+                }
+            ]
+        });
+    });
+
+    guessCollector.on("end", (collected, reason) => {
+
+        clearTimeout(clue2Timer);
+        clearTimeout(clue3Timer);
+
+        activeGuessGames.delete(message.channel.id);
+
+        if (reason === "winner") return;
+
+        message.channel.send({
+            embeds: [
+                {
+                    title: "⏰ TIME'S UP!",
+                    description:
+                        `😿 Nobody guessed the word!\n\n` +
+                        `🐾 The word was **${game.word.toUpperCase()}**!\n\n` +
+                        `😺 Better luck next time!`,
+                    color: 0xff69b4
+                }
+            ]
+        });
+    });
 }
 
 // Shope items
