@@ -594,6 +594,7 @@ if (command === "meow!help") {
 \`meow!joke\` 😂 - Get a random cat joke
 \`meow!type\`⌨️ - Who types fast
 \`meow!guess\`🐾 - Guess the word
+\`meow!rate\`⭐ - Rate a user
 
 `
             },
