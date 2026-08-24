@@ -113,81 +113,81 @@ if (command === "meow!guess") {
         {
             word: "cat",
             clues: [
-                "🐾 I have four legs.",
-                "😺 I love to purr.",
-                "🐟 I might enjoy chasing fish."
+                " I have four legs.",
+                " I love to purr.",
+                " I might enjoy chasing fish."
             ]
         },
         {
             word: "pizza",
             clues: [
-                "🍕 I am usually round.",
-                "🧀 I often have cheese.",
-                "🔥 I am usually cooked in an oven."
+                " I am usually round.",
+                " I often have cheese.",
+                " I am usually cooked in an oven."
             ]
         },
         {
             word: "banana",
             clues: [
-                "🍌 I am a fruit.",
-                "🟡 I am usually yellow.",
-                "🐒 Monkeys are famous for liking me."
+                "I am a fruit.",
+                " I am usually yellow.",
+                " Monkeys are famous for liking me."
             ]
         },
         {
             word: "ocean",
             clues: [
-                "🌊 I contain lots of water.",
-                "🐟 Many fish live inside me.",
-                "🚢 Ships can travel across me."
+                " I contain lots of water.",
+                " Many fish live inside me.",
+                " Ships can travel across me."
             ]
         },
         {
             word: "pencil",
             clues: [
-                "✏️ You can use me to write.",
-                "📚 Students often use me.",
-                "📝 I can be erased."
+                " You can use me to write.",
+                " Students often use me.",
+                " I can be erased."
             ]
         },
         {
             word: "cookie",
             clues: [
-                "🍪 I am usually sweet.",
-                "🍫 I can contain chocolate chips.",
-                "🥛 I go well with milk."
+                " I am usually sweet.",
+                " I can contain chocolate chips.",
+                " I go well with milk."
             ]
         },
         {
             word: "rainbow",
             clues: [
-                "🌈 I can appear after rain.",
-                "☀️ You need sunlight for me to appear.",
-                "🎨 I have many colors."
+                " I can appear after rain.",
+                " You need sunlight for me to appear.",
+                " I have many colors."
             ]
         },
         {
             word: "guitar",
             clues: [
-                "🎸 I am a musical instrument.",
-                "🎵 I have strings.",
-                "🎶 You can play music with me."
+                " I am a musical instrument.",
+                " I have strings.",
+                " You can play music with me."
             ]
         },
         {
             word: "castle",
             clues: [
-                "🏰 Kings and queens might live in me.",
-                "👑 I can have towers.",
-                "🐉 You might find me in fairy tales."
+                "Kings and queens might live in me.",
+                "I can have towers.",
+                "You might find me in fairy tales."
             ]
         },
         {
             word: "snow",
             clues: [
-                "❄️ I am very cold.",
-                "☃️ You can make a snowman from me.",
-                "🤍 I am usually white."
+                " I am very cold.",
+                " You can make a snowman from me.",
+                " I am usually white."
             ]
         }
     ];
@@ -337,6 +337,64 @@ if (command === "meow!guess") {
                 }
             ]
         });
+    });
+}
+
+// ⭐ Rate Command
+if (command.startsWith("meow!rate")) {
+
+    const target = message.mentions.users.first();
+
+    if (!target) {
+        return message.reply(
+            "⭐ Mention someone to rate!\nExample: `meow!rate @kitty`"
+        );
+    }
+
+    // 👑 My DISCORD USER ID HERE
+    const ownerId = "1403093633338441809";
+
+    let rating;
+    let ratingMessage;
+
+    // 👑 Special 100/100 rating for the owner
+    if (target.id === ownerId) {
+
+        rating = 100;
+        ratingMessage = "👑 The rating system has decided. Absolutely purr-fect!";
+
+    } else {
+
+        rating = Math.floor(Math.random() * 101);
+
+        if (rating === 100) {
+            ratingMessage = "😳 HOW ARE YOU THIS PERFECT?!";
+        }
+        else if (rating >= 80) {
+            ratingMessage = "😺 That's pretty pawsome!";
+        }
+        else if (rating >= 60) {
+            ratingMessage = "🐾 Not bad at all!";
+        }
+        else if (rating >= 40) {
+            ratingMessage = "😹 Meow Bot has seen better...";
+        }
+        else {
+            ratingMessage = "💀 The cats are disappointed.";
+        }
+    }
+
+    return message.channel.send({
+        embeds: [
+            {
+                title: "⭐ Meow Rating",
+                description:
+                    `🐱 **${target.username}**\n\n` +
+                    `⭐ Rating: **${rating}/100**\n\n` +
+                    ratingMessage,
+                color: 0xff69b4
+            }
+        ]
     });
 }
 
