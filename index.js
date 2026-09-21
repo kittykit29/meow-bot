@@ -562,17 +562,19 @@ const template = await loadImage(
 
         // 🐱 Get Discord profile pictures
         const avatar1URL = user1.displayAvatarURL({
-            extension: "png",
-            size: 256
-        });
+    extension: "png",
+    size: 256,
+    forceStatic: true
+});
 
-        const avatar2URL = user2.displayAvatarURL({
-            extension: "png",
-            size: 256
-        });
+const avatar2URL = user2.displayAvatarURL({
+    extension: "png",
+    size: 256,
+    forceStatic: true
+});
 
-        const avatar1 = await loadImage(avatar1URL);
-        const avatar2 = await loadImage(avatar2URL);
+const avatar1 = await loadImage(new URL(avatar1URL));
+const avatar2 = await loadImage(new URL(avatar2URL));
 
         // =====================================================
         // LEFT PROFILE PICTURE
