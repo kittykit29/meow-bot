@@ -476,243 +476,141 @@ const shopItems = {
     }
 
 };
-
 // 💖 Meow Bot Ship Command
 if (
-    command === "meow!ship" ||
-    command.startsWith("meow!ship ")
+  command === "meow!ship" ||
+  command.startsWith("meow!ship ")
 ) {
+  const users = [...message.mentions.users.values()];
 
-    const users = [...message.mentions.users.values()];
+  let user1;
+  let user2;
 
-    let user1;
-    let user2;
+  // No mention → ship yourself
+  if (users.length === 0) {
+      user1 = message.author;
+      user2 = message.author;
+  }
+  // One mention → you × mentioned user
+  else if (users.length === 1) {
+      user1 = message.author;
+      user2 = users[0];
+  }
+  // Two mentions → first two users
+  else {
+      user1 = users[0];
+      user2 = users[1];
+  }
 
-    // No mention → ship yourself
-    if (users.length === 0) {
-        user1 = message.author;
-        user2 = message.author;
-    }
+  const percentage = Math.floor(Math.random() * 101);
 
-    // One mention → you × mentioned user
-    else if (users.length === 1) {
-        user1 = message.author;
-        user2 = users[0];
-    }
+  let status;
+  let messageText;
 
-    // Two mentions → first two users
-    else {
-        user1 = users[0];
-        user2 = users[1];
-    }
+  if (percentage >= 90) {
+      status = "💍 SOULMATES";
+      messageText = "THE MEOW CALCULATOR HAS SPOKEN. THIS IS DESTINY. 😭💗";
+  } else if (percentage >= 75) {
+      status = "💕 AMAZING MATCH";
+      messageText = "Okayyy there's definitely something going on here... 👀";
+  } else if (percentage >= 60) {
+      status = "💗 CUTE MATCH";
+      messageText = "Awww, there's definitely some chemistry here! 🥺";
+  } else if (percentage >= 40) {
+      status = "💞 MAYBE...";
+      messageText = "Hmmmm... Meow Bot senses potential. 👀";
+  } else if (percentage >= 20) {
+      status = "💔 JUST FRIENDS";
+      messageText = "The chemistry is struggling a little... 😭";
+  } else {
+      status = "💀 ABSOLUTELY NOT";
+      messageText = "Meow Bot recommends staying 10 feet apart. 😭";
+  }
 
-    const percentage = Math.floor(Math.random() * 101);
+  try {
+      console.log("🟢 SHIP: starting image creation");
 
-    let status;
-    let messageText;
+      // 🎀 Correct directory reference
+      const templatePath = path.join(__dirname, "images", "meow-ship.png");
 
-    if (percentage >= 90) {
-        status = "💍 SOULMATES";
-        messageText =
-            "THE MEOW CALCULATOR HAS SPOKEN. THIS IS DESTINY. 😭💗";
-    }
-    else if (percentage >= 75) {
-        status = "💕 AMAZING MATCH";
-        messageText =
-            "Okayyy there's definitely something going on here... 👀";
-    }
-    else if (percentage >= 60) {
-        status = "💗 CUTE MATCH";
-        messageText =
-            "Awww, there's definitely some chemistry here! 🥺";
-    }
-    else if (percentage >= 40) {
-        status = "💞 MAYBE...";
-        messageText =
-            "Hmmmm... Meow Bot senses potential. 👀";
-    }
-    else if (percentage >= 20) {
-        status = "💔 JUST FRIENDS";
-        messageText =
-            "The chemistry is struggling a little... 😭";
-    }
-    else {
-        status = "💀 ABSOLUTELY NOT";
-        messageText =
-            "Meow Bot recommends staying 10 feet apart. 😭";
-    }
+      if (!fs.existsSync(templatePath)) {
+          return message.reply("😿 Missing `images/meow-ship.png` file on the bot server!");
+      }
 
-    try {
+      console.log("🟢 SHIP: template path:", templatePath);
+      const template = await loadImage(templatePath);
+      console.log("🟢 SHIP: template loaded");
 
-        console.log("🟢 SHIP: starting image creation");
+      const canvas = createCanvas(template.width, template.height);
+      const ctx = canvas.getContext("2d");
 
-        // 🎀 Load the ship template
-        const templatePath = path.join(
-            __dirname,
-            "images",
-            "meow-ship.png"
-        );
+      ctx.drawImage(template, 0, 0);
 
-        console.log("🟢 SHIP: template path:", templatePath);
+      // 🖼️ Fetch avatar URLs safely
+      const avatar1URL = user1.displayAvatarURL({ extension: "png", size: 256, forceStatic: true });
+      const avatar2URL = user2.displayAvatarURL({ extension: "png", size: 256, forceStatic: true });
 
-        const template = await loadImage(templatePath);
+      console.log("🔥 AVATAR 1 URL:", avatar1URL);
+      console.log("🔥 AVATAR 2 URL:", avatar2URL);
 
-        console.log("🟢 SHIP: template loaded");
+      const avatar1 = await loadImage(avatar1URL);
+      const avatar2 = await loadImage(avatar2URL);
 
-        const canvas = createCanvas(
-            template.width,
-            template.height
-        );
+      // LEFT AVATAR
+      const leftX = 405;
+      const leftY = 470;
+      const avatarSize = 350;
 
-        const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(leftX, leftY, avatarSize / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(avatar1, leftX - avatarSize / 2, leftY - avatarSize / 2, avatarSize, avatarSize);
+      ctx.restore();
 
-        ctx.drawImage(template, 0, 0);
+      // RIGHT AVATAR
+      const rightX = 1240;
+      const rightY = 470;
 
-// 🖼️ Get Discord avatars
-const avatar1URL = user1.displayAvatarURL({
-    extension: "png",
-    size: 256,
-    forceStatic: true
-});
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(rightX, rightY, avatarSize / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(avatar2, rightX - avatarSize / 2, rightY - avatarSize / 2, avatarSize, avatarSize);
+      ctx.restore();
 
-const avatar2URL = user2.displayAvatarURL({
-    extension: "png",
-    size: 256,
-    forceStatic: true
-});
+      // 💯 Percentage
+      ctx.font = "bold 64px Arial";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`${percentage}%`, 823, 460);
 
-console.log("🔥 AVATAR 1 URL:", avatar1URL);
-console.log("🔥 AVATAR 2 URL:", avatar2URL);
+      // 👤 Usernames
+      ctx.font = "bold 30px Arial";
+      ctx.fillStyle = "#d95c86";
+      ctx.fillText(user1.username, leftX, 675);
+      ctx.fillText(user2.username, rightX, 675);
 
-if (!avatar1URL || !avatar2URL) {
-    throw new Error("Discord avatar URL is missing");
-}
+      // 📸 Convert canvas buffer and send attachment
+      const attachment = canvas.toBuffer("image/png");
 
-const response1 = await fetch(avatar1URL);
-const response2 = await fetch(avatar2URL);
+      console.log("🟢 SHIP: image created successfully");
 
-if (!response1.ok || !response2.ok) {
-    throw new Error("Could not download Discord avatar");
-}
+      return message.channel.send({
+          content: `💗 **${user1.username} ×${user2.username}**\n\n${status}\n${messageText}`,
+          files: [
+              {
+                  attachment: attachment,
+                  name: "meow-ship.png"
+              }
+          ]
+      });
 
-const buffer1 = Buffer.from(await response1.arrayBuffer());
-const buffer2 = Buffer.from(await response2.arrayBuffer());
-
-const avatar1 = await loadImage(buffer1);
-const avatar2 = await loadImage(buffer2);
-
-        // LEFT AVATAR
-        const leftX = 405;
-        const leftY = 470;
-        const avatarSize = 350;
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.arc(
-            leftX,
-            leftY,
-            avatarSize / 2,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.clip();
-
-        ctx.drawImage(
-            avatar1,
-            leftX - avatarSize / 2,
-            leftY - avatarSize / 2,
-            avatarSize,
-            avatarSize
-        );
-
-        ctx.restore();
-
-        // RIGHT AVATAR
-        const rightX = 1240;
-        const rightY = 470;
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.arc(
-            rightX,
-            rightY,
-            avatarSize / 2,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.clip();
-
-        ctx.drawImage(
-            avatar2,
-            rightX - avatarSize / 2,
-            rightY - avatarSize / 2,
-            avatarSize,
-            avatarSize
-        );
-
-        ctx.restore();
-
-        // 💯 Percentage
-        ctx.font = "bold 64px Arial";
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.fillText(
-            `${percentage}%`,
-            823,
-            460
-        );
-
-        // 👤 Usernames
-        ctx.font = "bold 30px Arial";
-        ctx.fillStyle = "#d95c86";
-
-        ctx.fillText(
-            user1.username,
-            leftX,
-            675
-        );
-
-        ctx.fillText(
-            user2.username,
-            rightX,
-            675
-        );
-
-        // 📸 Convert canvas to image
-        const attachment = canvas.toBuffer("image/png");
-
-        console.log("🟢 SHIP: image created successfully");
-
-        return message.channel.send({
-            content:
-                `💗 **${user1.username} × ${user2.username}**\n\n` +
-                `${status}\n` +
-                `${messageText}`,
-
-            files: [
-                {
-                    attachment: attachment,
-                    name: "meow-ship.png"
-                }
-            ]
-        });
-
-    } catch (error) {
-
-        console.error("🔥 SHIP IMAGE ERROR:", error);
-
-        return message.reply(
-            `😿 Ship image error: \`${error.message}\``
-        );
-    }
+  } catch (error) {
+      console.error("🔥 SHIP IMAGE ERROR:", error);
+      return message.reply(`😿 Ship image error: \`${error.message}\``);
+  }
 }
     // Test command
     if (command === "meow") {
