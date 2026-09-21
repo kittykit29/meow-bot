@@ -692,17 +692,14 @@ const template = await loadImage(
             ]
         });
 
-    } catch (error) {
+  } catch (error) {
+    console.error("🔥 SHIP IMAGE ERROR:", error);
 
-        console.error("SHIP IMAGE ERROR:", error);
-
-        return message.reply(
-            "😿 Meow Bot couldn't create the ship image right now!"
-        );
-    }
+    return message.reply(
+        `😿 Ship image error:\n\`${error.message}\``
+    );
 }
-
-
+}
     // Test command
     if (command === "meow") {
         message.reply("Meow! 😺");
