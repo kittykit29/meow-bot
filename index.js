@@ -8,6 +8,8 @@ const {
     ButtonStyle
 } = require("discord.js");
 
+const { createCanvas, loadImage } = require("@napi-rs/canvas");
+
 const fs = require("fs");
 const workCooldown = new Map();
 const duelChallenges = new Map();
@@ -474,8 +476,11 @@ const shopItems = {
 
 };
 
-   // Ship Command 💖
-if (command.startsWith("meow!ship")) {
+// 💖 Meow Bot Ship Command
+if (
+    command === "meow!ship" ||
+    command.startsWith("meow!ship ")
+) {
 
     const users = [...message.mentions.users.values()];
 
@@ -488,47 +493,207 @@ if (command.startsWith("meow!ship")) {
         user2 = message.author;
     }
 
-    // One mention = ship yourself with that person 💖
+    // One mention = ship yourself with that person 💕
     else if (users.length === 1) {
         user1 = message.author;
         user2 = users[0];
     }
 
-    // Two or more mentions = ship the first two
+    // Two mentions = ship both people 💞
     else {
         user1 = users[0];
         user2 = users[1];
     }
 
+    // 💗 Random compatibility
     const percentage = Math.floor(Math.random() * 101);
 
+    // 💕 Status + message
+    let status;
     let messageText;
 
-    if (percentage === 100) {
-        messageText = "💞 Perfect match! Can't find any better than you guys!";
+    if (percentage >= 90) {
+        status = "💍 SOULMATES";
+        messageText =
+            "THE MEOW CALCULATOR HAS SPOKEN. THIS IS DESTINY. 😭💗";
     }
-    else if (percentage >= 70) {
-        messageText = "💕 Cuteissiii match!";
+    else if (percentage >= 75) {
+        status = "💕 AMAZING MATCH";
+        messageText =
+            "Okayyy there's definitely something going on here... 👀";
+    }
+    else if (percentage >= 60) {
+        status = "💗 CUTE MATCH";
+        messageText =
+            "Awww, there's definitely some chemistry here! 🥺";
     }
     else if (percentage >= 40) {
-        messageText = "💗 There might be something there awwiiee!";
+        status = "💞 MAYBE...";
+        messageText =
+            "Hmmmm... Meow Bot senses potential. 👀";
+    }
+    else if (percentage >= 20) {
+        status = "💔 JUST FRIENDS";
+        messageText =
+            "The chemistry is struggling a little... 😭";
     }
     else {
-        messageText = "💔 Ole Ole... Maybe just friends...";
+        status = "💀 ABSOLUTELY NOT";
+        messageText =
+            "Meow Bot recommends staying 10 feet apart. 😭";
     }
 
-    message.channel.send({
-        embeds: [
-            {
-                title: "💖 Meow Love Calculator",
-                description:
-                    `${user1} ❤️ ${user2}\n\n` +
-                    `**Compatibility:** ${percentage}%\n\n` +
-                    messageText,
-                color: 0xff69b4
-            }
-        ]
-    });
+    try {
+
+        // 🎀 Load Crystal Bond / Meow Bot template
+        const template = await loadImage("./images/meow-ship.png");
+
+        const canvas = createCanvas(template.width, template.height);
+        const ctx = canvas.getContext("2d");
+
+        // Draw template
+        ctx.drawImage(template, 0, 0);
+
+        // 🐱 Get Discord profile pictures
+        const avatar1URL = user1.displayAvatarURL({
+            extension: "png",
+            size: 256
+        });
+
+        const avatar2URL = user2.displayAvatarURL({
+            extension: "png",
+            size: 256
+        });
+
+        const avatar1 = await loadImage(avatar1URL);
+        const avatar2 = await loadImage(avatar2URL);
+
+        // =====================================================
+        // LEFT PROFILE PICTURE
+        // =====================================================
+
+        const leftX = 405;
+        const leftY = 470;
+        const avatarSize = 350;
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.arc(
+            leftX,
+            leftY,
+            avatarSize / 2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.clip();
+
+        ctx.drawImage(
+            avatar1,
+            leftX - avatarSize / 2,
+            leftY - avatarSize / 2,
+            avatarSize,
+            avatarSize
+        );
+
+        ctx.restore();
+
+        // =====================================================
+        // RIGHT PROFILE PICTURE
+        // =====================================================
+
+        const rightX = 1240;
+        const rightY = 470;
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.arc(
+            rightX,
+            rightY,
+            avatarSize / 2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.clip();
+
+        ctx.drawImage(
+            avatar2,
+            rightX - avatarSize / 2,
+            rightY - avatarSize / 2,
+            avatarSize,
+            avatarSize
+        );
+
+        ctx.restore();
+
+        // =====================================================
+        // 💗 PERCENTAGE
+        // =====================================================
+
+        ctx.font = "bold 64px Arial";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillText(
+            `${percentage}%`,
+            823,
+            460
+        );
+
+        // =====================================================
+        // 💕 NAMES
+        // =====================================================
+
+        ctx.font = "bold 30px Arial";
+        ctx.fillStyle = "#d95c86";
+
+        ctx.fillText(
+            user1.username,
+            leftX,
+            675
+        );
+
+        ctx.fillText(
+            user2.username,
+            rightX,
+            675
+        );
+
+        // =====================================================
+        // 📸 Convert image
+        // =====================================================
+
+        const attachment = canvas.toBuffer("image/png");
+
+        // =====================================================
+        // 💌 SEND RESULT
+        // =====================================================
+
+        return message.channel.send({
+            content:
+                `💗 **${user1.username} × ${user2.username}**\n\n` +
+                `${status}\n` +
+                `${messageText}`,
+            files: [
+                {
+                    attachment,
+                    name: "meow-ship.png"
+                }
+            ]
+        });
+
+    } catch (error) {
+
+        console.error("SHIP IMAGE ERROR:", error);
+
+        return message.reply(
+            "😿 Meow Bot couldn't create the ship image right now!"
+        );
+    }
 }
 
 
