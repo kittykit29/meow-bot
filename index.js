@@ -482,6 +482,9 @@ if (
     command.startsWith("meow!ship ")
 ) {
 
+    console.log("🔥 NEW SHIP COMMAND IS RUNNING!");
+
+
     const users = [...message.mentions.users.values()];
 
     let user1;
