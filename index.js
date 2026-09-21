@@ -568,29 +568,38 @@ if (
 
         ctx.drawImage(template, 0, 0);
 
-        // 🖼️ Get Discord avatars
-        const avatar1URL = user1.displayAvatarURL({
-            extension: "png",
-            size: 256,
-            forceStatic: true
-        });
+// 🖼️ Get Discord avatars
+const avatar1URL = user1.displayAvatarURL({
+    extension: "png",
+    size: 256,
+    forceStatic: true
+});
 
-        const avatar2URL = user2.displayAvatarURL({
-            extension: "png",
-            size: 256,
-            forceStatic: true
-        });
+const avatar2URL = user2.displayAvatarURL({
+    extension: "png",
+    size: 256,
+    forceStatic: true
+});
 
-        console.log("🟢 AVATAR 1:", avatar1URL);
-        console.log("🟢 AVATAR 2:", avatar2URL);
+console.log("🔥 AVATAR 1 URL:", avatar1URL);
+console.log("🔥 AVATAR 2 URL:", avatar2URL);
 
-        const avatar1 = await loadImage(avatar1URL);
+if (!avatar1URL || !avatar2URL) {
+    throw new Error("Discord avatar URL is missing");
+}
 
-        console.log("🟢 SHIP: avatar 1 loaded");
+const response1 = await fetch(avatar1URL);
+const response2 = await fetch(avatar2URL);
 
-        const avatar2 = await loadImage(avatar2URL);
+if (!response1.ok || !response2.ok) {
+    throw new Error("Could not download Discord avatar");
+}
 
-        console.log("🟢 SHIP: avatar 2 loaded");
+const buffer1 = Buffer.from(await response1.arrayBuffer());
+const buffer2 = Buffer.from(await response2.arrayBuffer());
+
+const avatar1 = await loadImage(buffer1);
+const avatar2 = await loadImage(buffer2);
 
         // LEFT AVATAR
         const leftX = 405;
