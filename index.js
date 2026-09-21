@@ -18,6 +18,7 @@ const typeChallenges = new Map();
 const activeTypingGames = new Map();
 const chatCooldown = new Map();
 const activeGuessGames = new Map();
+const path = require("path");
 
 const economyFile = "./database/economy.json";
 
@@ -549,7 +550,9 @@ if (
     try {
 
         // 🎀 Load Crystal Bond / Meow Bot template
-        const template = await loadImage("./images/meow-ship.png");
+const template = await loadImage(
+    path.join(__dirname, "images", "meow-ship.png")
+);
 
         const canvas = createCanvas(template.width, template.height);
         const ctx = canvas.getContext("2d");
