@@ -483,36 +483,31 @@ if (
     command.startsWith("meow!ship ")
 ) {
 
-    console.log("🔥 NEW SHIP COMMAND IS RUNNING!");
-
-
     const users = [...message.mentions.users.values()];
 
     let user1;
     let user2;
 
-    // No mentions = ship yourself ❤️
+    // No mention → ship yourself
     if (users.length === 0) {
         user1 = message.author;
         user2 = message.author;
     }
 
-    // One mention = ship yourself with that person 💕
+    // One mention → you × mentioned user
     else if (users.length === 1) {
         user1 = message.author;
         user2 = users[0];
     }
 
-    // Two mentions = ship both people 💞
+    // Two mentions → first two users
     else {
         user1 = users[0];
         user2 = users[1];
     }
 
-    // 💗 Random compatibility
     const percentage = Math.floor(Math.random() * 101);
 
-    // 💕 Status + message
     let status;
     let messageText;
 
@@ -549,37 +544,55 @@ if (
 
     try {
 
-        // 🎀 Load Crystal Bond / Meow Bot template
-const template = await loadImage(
-    path.join(__dirname, "images", "meow-ship.png")
-);
+        console.log("🟢 SHIP: starting image creation");
 
-        const canvas = createCanvas(template.width, template.height);
+        // 🎀 Load the ship template
+        const templatePath = path.join(
+            __dirname,
+            "images",
+            "meow-ship.png"
+        );
+
+        console.log("🟢 SHIP: template path:", templatePath);
+
+        const template = await loadImage(templatePath);
+
+        console.log("🟢 SHIP: template loaded");
+
+        const canvas = createCanvas(
+            template.width,
+            template.height
+        );
+
         const ctx = canvas.getContext("2d");
 
-        // Draw template
         ctx.drawImage(template, 0, 0);
 
-        // 🐱 Get Discord profile pictures
+        // 🖼️ Get Discord avatars
         const avatar1URL = user1.displayAvatarURL({
-    extension: "png",
-    size: 256,
-    forceStatic: true
-});
+            extension: "png",
+            size: 256,
+            forceStatic: true
+        });
 
-const avatar2URL = user2.displayAvatarURL({
-    extension: "png",
-    size: 256,
-    forceStatic: true
-});
+        const avatar2URL = user2.displayAvatarURL({
+            extension: "png",
+            size: 256,
+            forceStatic: true
+        });
 
-const avatar1 = await loadImage(new URL(avatar1URL));
-const avatar2 = await loadImage(new URL(avatar2URL));
+        console.log("🟢 AVATAR 1:", avatar1URL);
+        console.log("🟢 AVATAR 2:", avatar2URL);
 
-        // =====================================================
-        // LEFT PROFILE PICTURE
-        // =====================================================
+        const avatar1 = await loadImage(avatar1URL);
 
+        console.log("🟢 SHIP: avatar 1 loaded");
+
+        const avatar2 = await loadImage(avatar2URL);
+
+        console.log("🟢 SHIP: avatar 2 loaded");
+
+        // LEFT AVATAR
         const leftX = 405;
         const leftY = 470;
         const avatarSize = 350;
@@ -587,6 +600,7 @@ const avatar2 = await loadImage(new URL(avatar2URL));
         ctx.save();
 
         ctx.beginPath();
+
         ctx.arc(
             leftX,
             leftY,
@@ -607,16 +621,14 @@ const avatar2 = await loadImage(new URL(avatar2URL));
 
         ctx.restore();
 
-        // =====================================================
-        // RIGHT PROFILE PICTURE
-        // =====================================================
-
+        // RIGHT AVATAR
         const rightX = 1240;
         const rightY = 470;
 
         ctx.save();
 
         ctx.beginPath();
+
         ctx.arc(
             rightX,
             rightY,
@@ -637,10 +649,7 @@ const avatar2 = await loadImage(new URL(avatar2URL));
 
         ctx.restore();
 
-        // =====================================================
-        // 💗 PERCENTAGE
-        // =====================================================
-
+        // 💯 Percentage
         ctx.font = "bold 64px Arial";
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center";
@@ -652,10 +661,7 @@ const avatar2 = await loadImage(new URL(avatar2URL));
             460
         );
 
-        // =====================================================
-        // 💕 NAMES
-        // =====================================================
-
+        // 👤 Usernames
         ctx.font = "bold 30px Arial";
         ctx.fillStyle = "#d95c86";
 
@@ -671,36 +677,33 @@ const avatar2 = await loadImage(new URL(avatar2URL));
             675
         );
 
-        // =====================================================
-        // 📸 Convert image
-        // =====================================================
-
+        // 📸 Convert canvas to image
         const attachment = canvas.toBuffer("image/png");
 
-        // =====================================================
-        // 💌 SEND RESULT
-        // =====================================================
+        console.log("🟢 SHIP: image created successfully");
 
         return message.channel.send({
             content:
                 `💗 **${user1.username} × ${user2.username}**\n\n` +
                 `${status}\n` +
                 `${messageText}`,
+
             files: [
                 {
-                    attachment,
+                    attachment: attachment,
                     name: "meow-ship.png"
                 }
             ]
         });
 
-  } catch (error) {
-    console.error("🔥 SHIP IMAGE ERROR:", error);
+    } catch (error) {
 
-    return message.reply(
-        `😿 Ship image error:\n\`${error.message}\``
-    );
-}
+        console.error("🔥 SHIP IMAGE ERROR:", error);
+
+        return message.reply(
+            `😿 Ship image error: \`${error.message}\``
+        );
+    }
 }
     // Test command
     if (command === "meow") {
