@@ -21,7 +21,7 @@ const path = require("path");
 
 GlobalFonts.registerFromPath(
     path.join(__dirname, "fonts", "DejaVuSans.ttf"),
-    "DejaVu Sans"
+    "DejaVuSans"
 );
 console.log("FONT CHECK:", GlobalFonts.families);
 
@@ -607,7 +607,7 @@ if (command.startsWith("meow!ship")) {
 
         ctx.fillStyle = DARK_PINK;
 
-        ctx.font = "bold 32px DejaVu Sans";
+        ctx.font = "bold 32px DejaVuSans";
 
         ctx.fillText("♥", 75, 90);
         ctx.fillText("♥", 925, 90);
@@ -617,7 +617,7 @@ if (command.startsWith("meow!ship")) {
         // 🖤 TITLE
         ctx.fillStyle = BLACK;
 
-        ctx.font = "bold 50px DejaVu Sans";
+        ctx.font = "bold 50px DejaVuSans";
 
         ctx.fillText("Meow Bot", 500, 70);
 
@@ -631,7 +631,7 @@ if (command.startsWith("meow!ship")) {
 
         ctx.fillStyle = BLACK;
 
-        ctx.font = "23px DejaVu Sans";
+        ctx.font = "23px DejaVuSans";
 
         ctx.fillText("Two souls ~ One purr", 500, 110);
 
@@ -697,19 +697,19 @@ if (command.startsWith("meow!ship")) {
 
         // 💗 HEART
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 90px DejaVu Sans";
+        ctx.font = "bold 90px DejaVuSans";
         ctx.fillText("♥", 500, 270);
 
         // 🖤 USERNAMES
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 25px DejaVu Sans";
+        ctx.font = "bold 25px DejaVuSans";
 
         ctx.fillText(user1.username, 245, 355);
         ctx.fillText(user2.username, 755, 355);
 
         // 💗 PERCENTAGE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 70px DejaVu Sans";
+        ctx.font = "bold 70px DejaVuSans";
 
         ctx.fillText(
             percentage + "%",
@@ -722,7 +722,7 @@ if (command.startsWith("meow!ship")) {
         ctx.fillRect(250, 465, 500, 70);
 
         ctx.fillStyle = WHITE;
-        ctx.font = "bold 20px DejaVu Sans";
+        ctx.font = "bold 20px DejaVuSans";
 
         ctx.fillText(
             shipMessage,
