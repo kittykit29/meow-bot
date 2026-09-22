@@ -482,6 +482,7 @@ const shopItems = {
 // 💗 MEOW BOT SHIP
 
 if (command.startsWith("meow!ship")) {
+    console.log("🚨 SHIP COMMAND: NEW VERSION");
 
     const users = [...message.mentions.users.values()];
 
