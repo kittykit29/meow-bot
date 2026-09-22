@@ -20,6 +20,7 @@ GlobalFonts.registerFromPath(
     path.join(__dirname, "fonts", "DejaVuSans.ttf"),
     "DejaVu Sans"
 );
+console.log("FONT CHECK:", GlobalFonts.families);
 
 console.log("🔥 MEOW BOT VERSION: SHIP FONT FIX 123");
 
