@@ -487,19 +487,19 @@ if (command.startsWith("meow!ship")) {
     let user1;
     let user2;
 
-    // 💗 TWO PEOPLE MENTIONED
+    // TWO PEOPLE MENTIONED
     if (users.length >= 2) {
         user1 = users[0];
         user2 = users[1];
     }
 
-    // 💗 ONE PERSON MENTIONED
+    // ONE PERSON MENTIONED
     else if (users.length === 1) {
         user1 = users[0];
         user2 = message.author;
     }
 
-    // 💗 NO ONE MENTIONED
+    // NO ONE MENTIONED
     else {
         user1 = message.author;
 
@@ -518,31 +518,32 @@ if (command.startsWith("meow!ship")) {
         user2 = members.random().user;
     }
 
-    // 💗 RANDOM PERCENTAGE
+    // RANDOM PERCENTAGE
     const percentage = Math.floor(Math.random() * 101);
 
     let shipMessage;
 
     if (percentage >= 90) {
-        shipMessage = "💖 PERFECT MATCH!";
+        shipMessage = "PERFECT MATCH!";
     } else if (percentage >= 75) {
-        shipMessage = "💕 THEY'RE SO CUTE TOGETHER!";
+        shipMessage = "THEY'RE SO CUTE TOGETHER!";
     } else if (percentage >= 60) {
-        shipMessage = "💗 THERE'S DEFINITELY SOMETHING THERE!";
+        shipMessage = "THERE'S DEFINITELY SOMETHING THERE!";
     } else if (percentage >= 40) {
-        shipMessage = "💞 MAYBE... MAYBE NOT...";
+        shipMessage = "MAYBE... MAYBE NOT...";
     } else if (percentage >= 20) {
-        shipMessage = "💔 THIS MIGHT BE A LITTLE COMPLICATED...";
+        shipMessage = "THIS MIGHT BE A LITTLE COMPLICATED...";
     } else {
-        shipMessage = "😭 BRO, ABSOLUTELY NOT.";
+        shipMessage = "BRO, ABSOLUTELY NOT.";
     }
 
-    // 🎨 CREATE CANVAS
     try {
 
-        const canvas = createCanvas(1000, 500);
+        // 🎨 CANVAS
+        const canvas = createCanvas(1000, 600);
         const ctx = canvas.getContext("2d");
 
+        // COLORS
         const BABY_PINK = "#F8C8DC";
         const LIGHT_PINK = "#FFE8F1";
         const DARK_PINK = "#D94F83";
@@ -550,24 +551,28 @@ if (command.startsWith("meow!ship")) {
         const WHITE = "#FFFFFF";
 
         // 🌸 BACKGROUND
-        const gradient = ctx.createLinearGradient(0, 0, 1000, 500);
+        const gradient = ctx.createLinearGradient(
+            0,
+            0,
+            1000,
+            600
+        );
 
         gradient.addColorStop(0, LIGHT_PINK);
         gradient.addColorStop(0.5, BABY_PINK);
         gradient.addColorStop(1, "#F5B6D0");
 
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 1000, 500);
+        ctx.fillRect(0, 0, 1000, 600);
 
-        // 🖤 OUTER BORDER
+        // 🖤 BORDERS
         ctx.strokeStyle = BLACK;
         ctx.lineWidth = 7;
-        ctx.strokeRect(15, 15, 970, 470);
+        ctx.strokeRect(15, 15, 970, 570);
 
-        // 🤍 INNER BORDER
         ctx.strokeStyle = WHITE;
         ctx.lineWidth = 3;
-        ctx.strokeRect(28, 28, 944, 444);
+        ctx.strokeRect(28, 28, 944, 544);
 
         // 💗 DECORATIONS
         ctx.textAlign = "center";
@@ -579,14 +584,6 @@ if (command.startsWith("meow!ship")) {
         ctx.fillText("♥", 925, 90);
         ctx.fillText("♡", 90, 410);
         ctx.fillText("♡", 910, 410);
-
-        ctx.fillStyle = BLACK;
-        ctx.font = "bold 25px Arial";
-
-        ctx.fillText("✦", 135, 125);
-        ctx.fillText("✦", 865, 125);
-        ctx.fillText("✦", 130, 365);
-        ctx.fillText("✦", 870, 365);
 
         // 🖤 TITLE
         ctx.fillStyle = BLACK;
@@ -603,9 +600,9 @@ if (command.startsWith("meow!ship")) {
 
         ctx.fillStyle = BLACK;
         ctx.font = "23px Arial";
-        ctx.fillText("Two souls ~ One purr ♡", 500, 110);
+        ctx.fillText("Two souls ~ One purr", 500, 110);
 
-        // 🐱 GET AVATARS
+        // 🐱 AVATARS
         const avatar1Url = user1.displayAvatarURL({
             extension: "png",
             size: 256
@@ -654,14 +651,10 @@ if (command.startsWith("meow!ship")) {
         drawAvatar(avatar1, 245, 235);
         drawAvatar(avatar2, 755, 235);
 
-        // 💗 CENTER HEART
-        ctx.fillStyle = WHITE;
-        ctx.font = "bold 100px Arial";
-        ctx.fillText("♥", 500, 265);
-
+        // 💗 HEART
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 82px Arial";
-        ctx.fillText("♥", 500, 265);
+        ctx.font = "bold 90px Arial";
+        ctx.fillText("♥", 500, 270);
 
         // 🖤 USERNAMES
         ctx.fillStyle = BLACK;
@@ -672,25 +665,38 @@ if (command.startsWith("meow!ship")) {
 
         // 💗 PERCENTAGE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 64px Arial";
-        ctx.fillText(`${percentage}%`, 500, 390);
+        ctx.font = "bold 70px Arial";
+
+        ctx.fillText(
+            percentage + "%",
+            500,
+            440
+        );
 
         // 🎀 MESSAGE BOX
         ctx.fillStyle = DARK_PINK;
-        ctx.fillRect(320, 410, 360, 50);
+        ctx.fillRect(250, 465, 500, 70);
 
         ctx.fillStyle = WHITE;
-        ctx.font = "bold 19px Arial";
-        ctx.fillText(shipMessage, 500, 442);
+        ctx.font = "bold 20px Arial";
+
+        ctx.fillText(
+            shipMessage,
+            500,
+            510
+        );
 
         // 📸 CREATE IMAGE
         const buffer = canvas.toBuffer("image/png");
 
-        const attachment = new AttachmentBuilder(buffer, {
-            name: "meow-ship.png"
-        });
+        const attachment = new AttachmentBuilder(
+            buffer,
+            {
+                name: "meow-ship.png"
+            }
+        );
 
-        // 💬 SEND BOTH MESSAGE + IMAGE
+        // 💬 SEND
         return message.reply({
             content:
                 `💗 **Meow Love Calculator** 💗\n` +
