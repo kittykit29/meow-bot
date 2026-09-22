@@ -13,6 +13,7 @@ const {
 } = require("@napi-rs/canvas");
 
 const fs = require("fs");
+console.log("🔥 MEOW BOT VERSION: SHIP FONT FIX 123");
 
 const workCooldown = new Map();
 const duelChallenges = new Map();
