@@ -714,6 +714,7 @@ if (command.startsWith("meow!ship")) {
             "😿 Something went wrong while creating the ship image!"
         );
     }
+
 }
 
 
