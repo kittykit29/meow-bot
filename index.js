@@ -579,7 +579,7 @@ if (command.startsWith("meow!ship")) {
         ctx.textAlign = "center";
 
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 32px Arial";
+        ctx.font = "bold 32px sans-serif";
 
         ctx.fillText("♥", 75, 90);
         ctx.fillText("♥", 925, 90);
@@ -588,7 +588,7 @@ if (command.startsWith("meow!ship")) {
 
         // 🖤 TITLE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 50px Arial";
+        ctx.font = "bold 50px sans-serif";
         ctx.fillText("Meow Bot", 500, 70);
 
         ctx.strokeStyle = DARK_PINK;
@@ -600,7 +600,7 @@ if (command.startsWith("meow!ship")) {
         ctx.stroke();
 
         ctx.fillStyle = BLACK;
-        ctx.font = "23px Arial";
+        ctx.font = "23px sans-serif";
         ctx.fillText("Two souls ~ One purr", 500, 110);
 
         // 🐱 AVATARS
@@ -654,19 +654,19 @@ if (command.startsWith("meow!ship")) {
 
         // 💗 HEART
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 90px Arial";
+        ctx.font = "bold 90px sans-serif";
         ctx.fillText("♥", 500, 270);
 
         // 🖤 USERNAMES
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 25px Arial";
+        ctx.font = "bold 25px sans-serif";
 
         ctx.fillText(user1.username, 245, 355);
         ctx.fillText(user2.username, 755, 355);
 
         // 💗 PERCENTAGE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 70px Arial";
+        ctx.font = "bold 70px sans-serif";
 
         ctx.fillText(
             percentage + "%",
@@ -679,7 +679,7 @@ if (command.startsWith("meow!ship")) {
         ctx.fillRect(250, 465, 500, 70);
 
         ctx.fillStyle = WHITE;
-        ctx.font = "bold 20px Arial";
+        ctx.font = "bold 20px sans-serif";
 
         ctx.fillText(
             shipMessage,
