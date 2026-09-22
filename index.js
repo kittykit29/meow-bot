@@ -478,153 +478,135 @@ const shopItems = {
     }
 
 };
-// 💖 Meow Bot Ship Command
+// 💗 MEOW BOT SHIP
+if (message.content.toLowerCase().startsWith("meow!ship")) {
 
-if (command === "meow!ship") {
+    const users = [...message.mentions.users.values()];
 
-    // Need exactly 2 users
-    const users = message.mentions.users;
-
-    if (users.size < 2) {
+    // Need exactly 2 mentioned users
+    if (users.length !== 2) {
         return message.reply(
             "💗 Usage: `meow!ship @user1 @user2`"
         );
     }
 
-    const user1 = users.first();
-    const user2 = users.at(1);
+    const user1 = users[0];
+    const user2 = users[1];
 
-    // Random love percentage
     const percentage = Math.floor(Math.random() * 101);
 
-    // Different messages depending on percentage
-    let result;
+    let shipMessage;
 
     if (percentage >= 90) {
-        result = "💞 MEOW SOULMATES!";
+        shipMessage = "💖 PERFECT MATCH!";
     } else if (percentage >= 75) {
-        result = "💕 PERFECT MATCH!";
-    } else if (percentage >= 50) {
-        result = "💗 THERE'S SOMETHING HERE!";
-    } else if (percentage >= 25) {
-        result = "💔 MAYBE...";
+        shipMessage = "💕 THEY'RE SO CUTE TOGETHER!";
+    } else if (percentage >= 60) {
+        shipMessage = "💗 THERE'S DEFINITELY SOMETHING THERE!";
+    } else if (percentage >= 40) {
+        shipMessage = "💞 MAYBE... MAYBE NOT...";
+    } else if (percentage >= 20) {
+        shipMessage = "💔 THIS MIGHT BE A LITTLE COMPLICATED...";
     } else {
-        result = "💀 JUST FRIENDS!";
+        shipMessage = "😭 BRO, ABSOLUTELY NOT.";
     }
 
     try {
-        // Canvas size
+
         const canvas = createCanvas(1000, 500);
         const ctx = canvas.getContext("2d");
 
-        // Background
+        // Baby pink background
         const gradient = ctx.createLinearGradient(0, 0, 1000, 500);
-        gradient.addColorStop(0, "#24101c");
-        gradient.addColorStop(0.5, "#5c1938");
-        gradient.addColorStop(1, "#24101c");
+        gradient.addColorStop(0, "#FFD9E8");
+        gradient.addColorStop(0.5, "#FFC1DC");
+        gradient.addColorStop(1, "#FFE6F1");
 
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 1000, 500);
 
-        // Decorative hearts
-        ctx.font = "35px Arial";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+        // Border
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.roundRect(15, 15, 970, 470);
+        ctx.stroke();
 
-        ctx.fillText("♡", 70, 90);
-        ctx.fillText("♡", 900, 100);
-        ctx.fillText("♡", 130, 420);
-        ctx.fillText("♡", 850, 410);
+        // Title
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 50px Arial";
+        ctx.fillText("Meow Bot", 500, 70);
 
-        // Get avatar URLs
-        const avatar1URL = user1.displayAvatarURL({
-            extension: "png",
-            size: 256
-        });
+        ctx.font = "24px Arial";
+        ctx.fillText("Two souls ~ One purr ♡", 500, 105);
 
-        const avatar2URL = user2.displayAvatarURL({
-            extension: "png",
-            size: 256
-        });
+        // Get avatars
+        const avatar1 = await loadImage(
+            user1.displayAvatarURL({
+                extension: "png",
+                size: 256
+            })
+        );
 
-        // Load avatars
-        const avatar1 = await loadImage(avatar1URL);
-        const avatar2 = await loadImage(avatar2URL);
+        const avatar2 = await loadImage(
+            user2.displayAvatarURL({
+                extension: "png",
+                size: 256
+            })
+        );
 
-        // Avatar settings
-        const avatarSize = 190;
-        const y = 130;
+        // Draw circular avatar
+        function drawAvatar(image, x, y) {
 
-        // Function for circular avatar
-        function drawAvatar(image, x, y, size) {
+            // White circle
             ctx.save();
 
             ctx.beginPath();
-            ctx.arc(
-                x + size / 2,
-                y + size / 2,
-                size / 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.closePath();
+            ctx.arc(x, y, 105, 0, Math.PI * 2);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x, y, 95, 0, Math.PI * 2);
             ctx.clip();
 
-            ctx.drawImage(image, x, y, size, size);
-
-            ctx.restore();
-
-            // White border
-            ctx.beginPath();
-            ctx.arc(
-                x + size / 2,
-                y + size / 2,
-                size / 2 + 5,
-                0,
-                Math.PI * 2
+            ctx.drawImage(
+                image,
+                x - 95,
+                y - 95,
+                190,
+                190
             );
 
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 8;
-            ctx.stroke();
+            ctx.restore();
         }
 
-        // Draw avatars
-        drawAvatar(avatar1, 100, y, avatarSize);
-        drawAvatar(avatar2, 710, y, avatarSize);
+        drawAvatar(avatar1, 245, 245);
+        drawAvatar(avatar2, 755, 245);
 
-        // Big heart in the middle
-        ctx.font = "100px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        // Heart
+        ctx.fillStyle = "#FF6FA8";
+        ctx.font = "bold 90px Arial";
+        ctx.fillText("♥", 500, 270);
 
-        ctx.shadowColor = "#ff4f91";
-        ctx.shadowBlur = 25;
-
-        ctx.fillStyle = "#ff5c9a";
-        ctx.fillText("♥", 500, 220);
-
-        ctx.shadowBlur = 0;
-
-        // User names
+        // Names
+        ctx.fillStyle = "#FFFFFF";
         ctx.font = "bold 28px Arial";
-        ctx.fillStyle = "#ffffff";
 
-        ctx.fillText(user1.username, 195, 360);
-        ctx.fillText(user2.username, 805, 360);
+        ctx.fillText(user1.username, 245, 375);
+        ctx.fillText(user2.username, 755, 375);
 
         // Percentage
-        ctx.font = "bold 48px Arial";
-        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 65px Arial";
+        ctx.fillText(`${percentage}%`, 500, 400);
 
-        ctx.fillText(`${percentage}%`, 500, 390);
-
-        // Result
+        // Message
+        ctx.fillStyle = "#FF5C9A";
         ctx.font = "bold 25px Arial";
-        ctx.fillStyle = "#ffd1e3";
+        ctx.fillText(shipMessage, 500, 450);
 
-        ctx.fillText(result, 500, 445);
-
-        // Create image
+        // Send image
         const attachment = new AttachmentBuilder(
             await canvas.encode("png"),
             {
@@ -632,28 +614,16 @@ if (command === "meow!ship") {
             }
         );
 
-        // Embed
-        const embed = new EmbedBuilder()
-            .setColor("#ff5c9a")
-            .setTitle("💗 Meow Love Calculator")
-            .setDescription(
-                `**${user1.username}** × **${user2.username}**`
-            )
-            .setImage("attachment://meow-ship.png")
-            .setFooter({
-                text: "😺 Calculated by Meow Bot"
-            });
-
         await message.reply({
-            embeds: [embed],
             files: [attachment]
         });
 
     } catch (error) {
-        console.error("SHIP COMMAND ERROR:", error);
 
-        message.reply(
-            "😿 I couldn't create the ship card right now!"
+        console.error("SHIP ERROR:", error);
+
+        await message.reply(
+            "😿 Something went wrong while making the ship!"
         );
     }
 }
