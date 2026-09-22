@@ -4,7 +4,10 @@ const {
     Client,
     GatewayIntentBits,
     AttachmentBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRowBuilder
 } = require("discord.js");
 
 const {
@@ -491,68 +494,82 @@ const shopItems = {
 // 💗 MEOW BOT SHIP
 
 if (command.startsWith("meow!ship")) {
-    console.log("🚨 SHIP COMMAND: NEW VERSION");
 
-    const users = [...message.mentions.users.values()];
-
-    let user1;
-    let user2;
-
-    // TWO PEOPLE MENTIONED
-    if (users.length >= 2) {
-        user1 = users[0];
-        user2 = users[1];
-    }
-
-    // ONE PERSON MENTIONED
-    else if (users.length === 1) {
-        user1 = users[0];
-        user2 = message.author;
-    }
-
-    // NO ONE MENTIONED
-    else {
-        user1 = message.author;
-
-        const members = message.guild.members.cache.filter(
-            member =>
-                !member.user.bot &&
-                member.id !== message.author.id
-        );
-
-        if (members.size === 0) {
-            return message.reply(
-                "😭 I need at least one other person to ship you with!"
-            );
-        }
-
-        user2 = members.random().user;
-    }
-
-    // RANDOM PERCENTAGE
-    const percentage = Math.floor(Math.random() * 101);
-
-    let shipMessage;
-
-    if (percentage >= 90) {
-        shipMessage = "PERFECT MATCH!";
-    } else if (percentage >= 75) {
-        shipMessage = "THEY'RE SO CUTE TOGETHER!";
-    } else if (percentage >= 60) {
-        shipMessage = "THERE'S DEFINITELY SOMETHING THERE!";
-    } else if (percentage >= 40) {
-        shipMessage = "MAYBE... MAYBE NOT...";
-    } else if (percentage >= 20) {
-        shipMessage = "THIS MIGHT BE A LITTLE COMPLICATED...";
-    } else {
-        shipMessage = "BRO, ABSOLUTELY NOT.";
-    }
+    console.log("🚨 SHIP COMMAND STARTED");
 
     try {
+
+        const users = [...message.mentions.users.values()];
+
+        let user1;
+        let user2;
+
+        // TWO PEOPLE MENTIONED
+        if (users.length >= 2) {
+            user1 = users[0];
+            user2 = users[1];
+        }
+
+        // ONE PERSON MENTIONED
+        else if (users.length === 1) {
+            user1 = users[0];
+            user2 = message.author;
+        }
+
+        // NO ONE MENTIONED
+        else {
+
+            user1 = message.author;
+
+            const members = message.guild.members.cache.filter(
+                member =>
+                    !member.user.bot &&
+                    member.id !== message.author.id
+            );
+
+            if (members.size === 0) {
+                return message.reply(
+                    "😭 I need at least one other person to ship you with!"
+                );
+            }
+
+            user2 = members.random().user;
+        }
+
+        console.log("👤 USER 1:", user1.username);
+        console.log("👤 USER 2:", user2.username);
+
+        // RANDOM PERCENTAGE
+        const percentage = Math.floor(Math.random() * 101);
+
+        let shipMessage;
+
+        if (percentage >= 90) {
+            shipMessage = "PERFECT MATCH!";
+        }
+        else if (percentage >= 75) {
+            shipMessage = "THEY'RE SO CUTE TOGETHER!";
+        }
+        else if (percentage >= 60) {
+            shipMessage = "THERE'S DEFINITELY SOMETHING THERE!";
+        }
+        else if (percentage >= 40) {
+            shipMessage = "MAYBE... MAYBE NOT...";
+        }
+        else if (percentage >= 20) {
+            shipMessage = "THIS MIGHT BE A LITTLE COMPLICATED...";
+        }
+        else {
+            shipMessage = "BRO, ABSOLUTELY NOT.";
+        }
+
+        console.log("💖 PERCENTAGE:", percentage);
 
         // 🎨 CANVAS
         const canvas = createCanvas(1000, 600);
         const ctx = canvas.getContext("2d");
+
+        console.log("🎨 CANVAS CREATED");
 
         // COLORS
         const BABY_PINK = "#F8C8DC";
@@ -589,7 +606,8 @@ if (command.startsWith("meow!ship")) {
         ctx.textAlign = "center";
 
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 32px sans-serif";
+
+        ctx.font = "bold 32px DejaVu Sans";
 
         ctx.fillText("♥", 75, 90);
         ctx.fillText("♥", 925, 90);
@@ -598,7 +616,9 @@ if (command.startsWith("meow!ship")) {
 
         // 🖤 TITLE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 50px 'DejaVu Sans'";
+
+        ctx.font = "bold 50px DejaVu Sans";
+
         ctx.fillText("Meow Bot", 500, 70);
 
         ctx.strokeStyle = DARK_PINK;
@@ -610,10 +630,14 @@ if (command.startsWith("meow!ship")) {
         ctx.stroke();
 
         ctx.fillStyle = BLACK;
-        ctx.font = "23px 'DejaVu Sans'";
+
+        ctx.font = "23px DejaVu Sans";
+
         ctx.fillText("Two souls ~ One purr", 500, 110);
 
-        // 🐱 AVATARS
+        console.log("📝 TEXT DRAWN");
+
+        // 🐱 AVATAR URLS
         const avatar1Url = user1.displayAvatarURL({
             extension: "png",
             size: 256
@@ -624,10 +648,17 @@ if (command.startsWith("meow!ship")) {
             size: 256
         });
 
-        const [avatar1, avatar2] = await Promise.all([
-            loadImage(avatar1Url),
-            loadImage(avatar2Url)
-        ]);
+        console.log("🔗 AVATAR 1:", avatar1Url);
+        console.log("🔗 AVATAR 2:", avatar2Url);
+
+        // LOAD AVATARS
+        const avatar1 = await loadImage(avatar1Url);
+
+        console.log("✅ AVATAR 1 LOADED");
+
+        const avatar2 = await loadImage(avatar2Url);
+
+        console.log("✅ AVATAR 2 LOADED");
 
         // 🖼️ DRAW AVATAR
         function drawAvatar(image, x, y) {
@@ -662,21 +693,23 @@ if (command.startsWith("meow!ship")) {
         drawAvatar(avatar1, 245, 235);
         drawAvatar(avatar2, 755, 235);
 
+        console.log("🐱 AVATARS DRAWN");
+
         // 💗 HEART
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 90px sans-serif";
+        ctx.font = "bold 90px DejaVu Sans";
         ctx.fillText("♥", 500, 270);
 
         // 🖤 USERNAMES
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 25px 'DejaVu Sans'";
+        ctx.font = "bold 25px DejaVu Sans";
 
         ctx.fillText(user1.username, 245, 355);
         ctx.fillText(user2.username, 755, 355);
 
         // 💗 PERCENTAGE
         ctx.fillStyle = BLACK;
-       ctx.font = "bold 70px 'DejaVu Sans'";
+        ctx.font = "bold 70px DejaVu Sans";
 
         ctx.fillText(
             percentage + "%",
@@ -689,7 +722,7 @@ if (command.startsWith("meow!ship")) {
         ctx.fillRect(250, 465, 500, 70);
 
         ctx.fillStyle = WHITE;
-       ctx.font = "bold 20px 'DejaVu Sans'";
+        ctx.font = "bold 20px DejaVu Sans";
 
         ctx.fillText(
             shipMessage,
@@ -697,8 +730,12 @@ if (command.startsWith("meow!ship")) {
             510
         );
 
+        console.log("🎨 SHIP IMAGE FINISHED");
+
         // 📸 CREATE IMAGE
         const buffer = canvas.toBuffer("image/png");
+
+        console.log("📦 BUFFER CREATED:", buffer.length);
 
         const attachment = new AttachmentBuilder(
             buffer,
@@ -707,6 +744,8 @@ if (command.startsWith("meow!ship")) {
             }
         );
 
+        console.log("📎 ATTACHMENT CREATED");
+
         // 💬 SEND
         return message.reply({
             content:
@@ -714,20 +753,21 @@ if (command.startsWith("meow!ship")) {
                 `💕 **${user1.username} × ${user2.username}**\n\n` +
                 `💖 **Compatibility: ${percentage}%**\n` +
                 `${shipMessage}`,
+
             files: [attachment]
         });
 
     } catch (error) {
 
-        console.error("Ship command error:", error);
+        console.error("🔥🔥🔥 SHIP COMMAND ERROR 🔥🔥🔥");
+        console.error(error);
+        console.error(error.stack);
 
         return message.reply(
             "😿 Something went wrong while creating the ship image!"
         );
     }
-
 }
-
 
     // Test command
     if (command === "meow") {
