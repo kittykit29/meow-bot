@@ -3,14 +3,17 @@ require("dotenv").config();
 const {
     Client,
     GatewayIntentBits,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle
+    AttachmentBuilder,
+    EmbedBuilder
 } = require("discord.js");
 
-const { createCanvas, loadImage } = require("@napi-rs/canvas");
+const {
+    createCanvas,
+    loadImage
+} = require("@napi-rs/canvas");
 
 const fs = require("fs");
+
 const workCooldown = new Map();
 const duelChallenges = new Map();
 const activeDuels = new Map();
@@ -18,7 +21,6 @@ const typeChallenges = new Map();
 const activeTypingGames = new Map();
 const chatCooldown = new Map();
 const activeGuessGames = new Map();
-const path = require("path");
 
 const economyFile = "./database/economy.json";
 
@@ -478,212 +480,180 @@ const shopItems = {
 };
 // 💖 Meow Bot Ship Command
 
-if (
-    command === "meow!ship" ||
-    command.startsWith("meow!ship ")
-) {
+if (command === "meow!ship") {
 
-    const users = [...message.mentions.users.values()];
+    // Need exactly 2 users
+    const users = message.mentions.users;
 
-    let user1;
-    let user2;
-
-    // No mention → ship yourself
-    if (users.length === 0) {
-        user1 = message.author;
-        user2 = message.author;
-    }
-    // One mention → you × mentioned user
-    else if (users.length === 1) {
-        user1 = message.author;
-        user2 = users[0];
-    }
-    // Two mentions → first two users
-    else {
-        user1 = users[0];
-        user2 = users[1];
+    if (users.size < 2) {
+        return message.reply(
+            "💗 Usage: `meow!ship @user1 @user2`"
+        );
     }
 
+    const user1 = users.first();
+    const user2 = users.at(1);
+
+    // Random love percentage
     const percentage = Math.floor(Math.random() * 101);
 
-    let status;
-    let messageText;
+    // Different messages depending on percentage
+    let result;
 
     if (percentage >= 90) {
-        status = "💍 SOULMATES";
-        messageText =
-            "THE MEOW CALCULATOR HAS SPOKEN. THIS IS DESTINY. 😭💗";
-    }
-    else if (percentage >= 75) {
-        status = "💕 AMAZING MATCH";
-        messageText =
-            "Okayyy there's definitely something going on here... 👀";
-    }
-    else if (percentage >= 60) {
-        status = "💗 CUTE MATCH";
-        messageText =
-            "Awww, there's definitely some chemistry here! 🥺";
-    }
-    else if (percentage >= 40) {
-        status = "💞 MAYBE...";
-        messageText =
-            "Hmmmm... Meow Bot senses potential. 👀";
-    }
-    else if (percentage >= 20) {
-        status = "💔 JUST FRIENDS";
-        messageText =
-            "The chemistry is struggling a little... 😭";
-    }
-    else {
-        status = "💀 ABSOLUTELY NOT";
-        messageText =
-            "Meow Bot recommends staying 10 feet apart. 😭";
+        result = "💞 MEOW SOULMATES!";
+    } else if (percentage >= 75) {
+        result = "💕 PERFECT MATCH!";
+    } else if (percentage >= 50) {
+        result = "💗 THERE'S SOMETHING HERE!";
+    } else if (percentage >= 25) {
+        result = "💔 MAYBE...";
+    } else {
+        result = "💀 JUST FRIENDS!";
     }
 
     try {
-        console.log("🟢 SHIP: starting image creation");
-
-        // 🎀 Load the ship template
-        const templatePath = path.join(
-            __dirname,
-            "images",
-            "meow-ship.png"
-        );
-
-        console.log("🟢 SHIP: template path:", templatePath);
-        const template = await loadImage(templatePath);
-        console.log("🟢 SHIP: template loaded");
-
-        const canvas = createCanvas(
-            template.width,
-            template.height
-        );
+        // Canvas size
+        const canvas = createCanvas(1000, 500);
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(template, 0, 0);
 
-        // 🖼️ Get Discord avatars
+        // Background
+        const gradient = ctx.createLinearGradient(0, 0, 1000, 500);
+        gradient.addColorStop(0, "#24101c");
+        gradient.addColorStop(0.5, "#5c1938");
+        gradient.addColorStop(1, "#24101c");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1000, 500);
+
+        // Decorative hearts
+        ctx.font = "35px Arial";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+
+        ctx.fillText("♡", 70, 90);
+        ctx.fillText("♡", 900, 100);
+        ctx.fillText("♡", 130, 420);
+        ctx.fillText("♡", 850, 410);
+
+        // Get avatar URLs
         const avatar1URL = user1.displayAvatarURL({
             extension: "png",
-            size: 256,
-            forceStatic: true
+            size: 256
         });
 
         const avatar2URL = user2.displayAvatarURL({
             extension: "png",
-            size: 256,
-            forceStatic: true
+            size: 256
         });
 
-        console.log("🔥 AVATAR 1 URL:", avatar1URL);
-        console.log("🔥 AVATAR 2 URL:", avatar2URL);
+        // Load avatars
+        const avatar1 = await loadImage(avatar1URL);
+        const avatar2 = await loadImage(avatar2URL);
 
-        if (!avatar1URL || !avatar2URL) {
-            throw new Error("Discord avatar URL is missing");
+        // Avatar settings
+        const avatarSize = 190;
+        const y = 130;
+
+        // Function for circular avatar
+        function drawAvatar(image, x, y, size) {
+            ctx.save();
+
+            ctx.beginPath();
+            ctx.arc(
+                x + size / 2,
+                y + size / 2,
+                size / 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.closePath();
+            ctx.clip();
+
+            ctx.drawImage(image, x, y, size, size);
+
+            ctx.restore();
+
+            // White border
+            ctx.beginPath();
+            ctx.arc(
+                x + size / 2,
+                y + size / 2,
+                size / 2 + 5,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 8;
+            ctx.stroke();
         }
 
-        const response1 = await fetch(avatar1URL);
-        const response2 = await fetch(avatar2URL);
+        // Draw avatars
+        drawAvatar(avatar1, 100, y, avatarSize);
+        drawAvatar(avatar2, 710, y, avatarSize);
 
-        if (!response1.ok || !response2.ok) {
-            throw new Error("Could not download Discord avatar");
-        }
-
-        const buffer1 = Buffer.from(await response1.arrayBuffer());
-        const buffer2 = Buffer.from(await response2.arrayBuffer());
-
-        const avatar1 = await loadImage(buffer1);
-        const avatar2 = await loadImage(buffer2);
-
-        // LEFT AVATAR
-        const leftX = 405;
-        const leftY = 470;
-        const avatarSize = 350;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(
-            leftX,
-            leftY,
-            avatarSize / 2,
-            0,
-            Math.PI * 2
-        );
-        ctx.clip();
-
-        ctx.drawImage(
-            avatar1,
-            leftX - avatarSize / 2,
-            leftY - avatarSize / 2,
-            avatarSize,
-            avatarSize
-        );
-
-        ctx.restore();
-
-        // RIGHT AVATAR
-        const rightX = 1240;
-        const rightY = 470;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(
-            rightX,
-            rightY,
-            avatarSize / 2,
-            0,
-            Math.PI * 2
-        );
-        ctx.clip();
-
-        ctx.drawImage(
-            avatar2,
-            rightX - avatarSize / 2,
-            rightY - avatarSize / 2,
-            avatarSize,
-            avatarSize
-        );
-
-        ctx.restore();
-
-        // 💯 Percentage
-        ctx.font = "bold 64px Arial";
-        ctx.fillStyle = "#ffffff";
+        // Big heart in the middle
+        ctx.font = "100px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        ctx.fillText(`${percentage}%`, 823, 460);
+        ctx.shadowColor = "#ff4f91";
+        ctx.shadowBlur = 25;
 
-        // 👤 Usernames
-        ctx.font = "bold 30px Arial";
-        ctx.fillStyle = "#d95c86";
+        ctx.fillStyle = "#ff5c9a";
+        ctx.fillText("♥", 500, 220);
 
-        ctx.fillText(user1.username, leftX, 675);
-        ctx.fillText(user2.username, rightX, 675);
+        ctx.shadowBlur = 0;
 
-        // 📸 Convert canvas to image
-        const attachment = canvas.toBuffer("image/png");
+        // User names
+        ctx.font = "bold 28px Arial";
+        ctx.fillStyle = "#ffffff";
 
-        console.log("🟢 SHIP: image created successfully");
+        ctx.fillText(user1.username, 195, 360);
+        ctx.fillText(user2.username, 805, 360);
 
-        return message.channel.send({
-            content:
-                `💗 **${user1.username} × ${user2.username}**\n\n` +
-                `${status}\n` +
-                `${messageText}`,
+        // Percentage
+        ctx.font = "bold 48px Arial";
+        ctx.fillStyle = "#ffffff";
 
-            files: [
-                {
-                    attachment: attachment,
-                    name: "meow-ship.png"
-                }
-            ]
+        ctx.fillText(`${percentage}%`, 500, 390);
+
+        // Result
+        ctx.font = "bold 25px Arial";
+        ctx.fillStyle = "#ffd1e3";
+
+        ctx.fillText(result, 500, 445);
+
+        // Create image
+        const attachment = new AttachmentBuilder(
+            await canvas.encode("png"),
+            {
+                name: "meow-ship.png"
+            }
+        );
+
+        // Embed
+        const embed = new EmbedBuilder()
+            .setColor("#ff5c9a")
+            .setTitle("💗 Meow Love Calculator")
+            .setDescription(
+                `**${user1.username}** × **${user2.username}**`
+            )
+            .setImage("attachment://meow-ship.png")
+            .setFooter({
+                text: "😺 Calculated by Meow Bot"
+            });
+
+        await message.reply({
+            embeds: [embed],
+            files: [attachment]
         });
 
     } catch (error) {
-        console.error("🔥 SHIP IMAGE ERROR:", error);
+        console.error("SHIP COMMAND ERROR:", error);
 
-        return message.reply(
-            `😿 Ship image error: \`${error.message}\``
+        message.reply(
+            "😿 I couldn't create the ship card right now!"
         );
     }
 }
