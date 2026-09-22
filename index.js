@@ -533,156 +533,298 @@ else {
     } else {
         shipMessage = "😭 BRO, ABSOLUTELY NOT.";
     }
-try {
-    const canvas = createCanvas(1000, 500);
-    const ctx = canvas.getContext("2d");
 
-    // =========================
-    // LOAD SHIP TEMPLATE
-    // =========================
+    try {
 
-    const template = await loadImage("./assets/ship-template.png");
+        const canvas = createCanvas(1000, 500);
+        const ctx = canvas.getContext("2d");
 
-    // Draw template
-    ctx.drawImage(template, 0, 0, 1000, 500);
+        // ==========================================
+        // 🎀 COLORS
+        // ==========================================
 
+        const BABY_PINK = "#F8C8DC";
+        const LIGHT_PINK = "#FFE8F1";
+        const DARK_PINK = "#D94F83";
+        const BLACK = "#171717";
+        const WHITE = "#FFFFFF";
 
-    // =========================
-    // GET USER AVATARS
-    // =========================
+        // ==========================================
+        // 🌸 BABY PINK BACKGROUND
+        // ==========================================
 
-    const avatar1 = await loadImage(
-        user1.displayAvatarURL({
-            extension: "png",
-            size: 256
-        })
-    );
+        const gradient = ctx.createLinearGradient(0, 0, 1000, 500);
 
-    const avatar2 = await loadImage(
-        user2.displayAvatarURL({
-            extension: "png",
-            size: 256
-        })
-    );
+        gradient.addColorStop(0, LIGHT_PINK);
+        gradient.addColorStop(0.5, BABY_PINK);
+        gradient.addColorStop(1, "#F5B6D0");
 
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1000, 500);
 
-    // =========================
-    // DRAW CIRCULAR AVATAR
-    // =========================
+        // ==========================================
+        // 🖤 BLACK OUTER BORDER
+        // ==========================================
 
-    function drawAvatar(image, x, y) {
+        ctx.strokeStyle = BLACK;
+        ctx.lineWidth = 7;
 
-        ctx.save();
-
-        // White outer circle
         ctx.beginPath();
-        ctx.arc(x, y, 98, 0, Math.PI * 2);
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fill();
+        ctx.roundRect(15, 15, 970, 470);
+        ctx.stroke();
 
-        // Clip avatar
+        // ==========================================
+        // 🤍 INNER WHITE BORDER
+        // ==========================================
+
+        ctx.strokeStyle = WHITE;
+        ctx.lineWidth = 3;
+
         ctx.beginPath();
-        ctx.arc(x, y, 90, 0, Math.PI * 2);
-        ctx.clip();
+        ctx.roundRect(28, 28, 944, 444);
+        ctx.stroke();
 
-        ctx.drawImage(
-            image,
-            x - 90,
-            y - 90,
-            180,
-            180
+        // ==========================================
+        // 💗 DECORATIVE HEARTS
+        // ==========================================
+
+        ctx.textAlign = "center";
+
+        ctx.fillStyle = DARK_PINK;
+        ctx.font = "bold 32px Arial";
+
+        ctx.fillText("♥", 75, 90);
+        ctx.fillText("♥", 925, 90);
+        ctx.fillText("♡", 90, 410);
+        ctx.fillText("♡", 910, 410);
+
+        // Small black decorations
+        ctx.fillStyle = BLACK;
+        ctx.font = "bold 25px Arial";
+
+        ctx.fillText("✦", 135, 125);
+        ctx.fillText("✦", 865, 125);
+        ctx.fillText("✦", 130, 365);
+        ctx.fillText("✦", 870, 365);
+
+        // ==========================================
+        // 🖤 TITLE
+        // ==========================================
+
+        ctx.fillStyle = BLACK;
+        ctx.font = "bold 50px Arial";
+
+        ctx.fillText(
+            "Meow Bot",
+            500,
+            70
         );
 
-        ctx.restore();
-    }
+        // Pink underline
+        ctx.strokeStyle = DARK_PINK;
+        ctx.lineWidth = 5;
 
+        ctx.beginPath();
+        ctx.moveTo(390, 82);
+        ctx.lineTo(610, 82);
+        ctx.stroke();
 
-    // =========================
-    // PUT PFPS ON TEMPLATE
-    // =========================
+        // Subtitle
+        ctx.fillStyle = BLACK;
+        ctx.font = "23px Arial";
 
-    drawAvatar(avatar1, 260, 195);
-    drawAvatar(avatar2, 740, 195);
+        ctx.fillText(
+            "Two souls ~ One purr ♡",
+            500,
+            110
+        );
 
+        // ==========================================
+        // 🐱 GET AVATARS
+        // ==========================================
 
-    // =========================
-    // USERNAMES
-    // =========================
+        const avatar1 = await loadImage(
+            user1.displayAvatarURL({
+                extension: "png",
+                size: 256
+            })
+        );
 
-    ctx.textAlign = "center";
+        const avatar2 = await loadImage(
+            user2.displayAvatarURL({
+                extension: "png",
+                size: 256
+            })
+        );
 
-    ctx.fillStyle = "#222222";
-    ctx.font = "bold 22px Arial";
+        // ==========================================
+        // 🖼️ DRAW CIRCULAR AVATAR
+        // ==========================================
 
-    ctx.fillText(
-        user1.username,
-        260,
-        310
-    );
+        function drawAvatar(image, x, y) {
 
-    ctx.fillText(
-        user2.username,
-        740,
-        310
-    );
+            ctx.save();
 
+            // Black outer circle
+            ctx.beginPath();
+            ctx.arc(x, y, 103, 0, Math.PI * 2);
+            ctx.fillStyle = BLACK;
+            ctx.fill();
 
-    // =========================
-    // PERCENTAGE
-    // =========================
+            // White ring
+            ctx.beginPath();
+            ctx.arc(x, y, 96, 0, Math.PI * 2);
+            ctx.fillStyle = WHITE;
+            ctx.fill();
 
-    ctx.fillStyle = "#222222";
-    ctx.font = "bold 58px Arial";
+            // Clip avatar
+            ctx.beginPath();
+            ctx.arc(x, y, 89, 0, Math.PI * 2);
+            ctx.clip();
 
-    ctx.fillText(
-        `${percentage}%`,
-        500,
-        375
-    );
+            ctx.drawImage(
+                image,
+                x - 89,
+                y - 89,
+                178,
+                178
+            );
 
-
-    // =========================
-    // SHIP MESSAGE
-    // =========================
-
-    ctx.fillStyle = "#222222";
-    ctx.font = "bold 20px Arial";
-
-    ctx.fillText(
-        shipMessage,
-        500,
-        455
-    );
-
-
-    // =========================
-    // CREATE IMAGE
-    // =========================
-
-    const attachment = new AttachmentBuilder(
-        await canvas.encode("png"),
-        {
-            name: "meow-ship.png"
+            ctx.restore();
         }
-    );
 
+        // ==========================================
+        // 👤 BOTH PFPS
+        // ==========================================
 
-    // =========================
-    // SEND TO DISCORD
-    // =========================
+        drawAvatar(avatar1, 245, 235);
+        drawAvatar(avatar2, 755, 235);
 
-    await message.reply({
-        files: [attachment]
-    });
+        // ==========================================
+        // 💗 CENTER HEART
+        // ==========================================
 
-} catch (error) {
+        // White heart outline
+        ctx.fillStyle = WHITE;
+        ctx.font = "bold 100px Arial";
 
-    console.error("SHIP ERROR:", error);
+        ctx.fillText(
+            "♥",
+            500,
+            265
+        );
 
-    await message.reply(
-        "😿 Something went wrong while making the ship!"
-    );
-}
+        // Pink heart
+        ctx.fillStyle = DARK_PINK;
+        ctx.font = "bold 82px Arial";
+
+        ctx.fillText(
+            "♥",
+            500,
+            265
+        );
+
+        // ==========================================
+        // 🖤 USERNAMES
+        // ==========================================
+
+        ctx.fillStyle = BLACK;
+        ctx.font = "bold 25px Arial";
+
+        ctx.fillText(
+            user1.username,
+            245,
+            355
+        );
+
+        ctx.fillText(
+            user2.username,
+            755,
+            355
+        );
+
+        // ==========================================
+        // 💗 PERCENTAGE
+        // ==========================================
+
+        // White outline/shadow
+        ctx.fillStyle = WHITE;
+        ctx.font = "bold 70px Arial";
+
+        ctx.fillText(
+            `${percentage}%`,
+            500,
+            380
+        );
+
+        // Black percentage
+        ctx.fillStyle = BLACK;
+        ctx.font = "bold 64px Arial";
+
+        ctx.fillText(
+            `${percentage}%`,
+            500,
+            380
+        );
+
+        // ==========================================
+        // 🎀 MESSAGE
+        // ==========================================
+
+        // Pink message box
+        ctx.fillStyle = DARK_PINK;
+
+        ctx.beginPath();
+        ctx.roundRect(320, 405, 360, 50, 25);
+        ctx.fill();
+
+        // White message
+        ctx.fillStyle = WHITE;
+        ctx.font = "bold 19px Arial";
+
+        ctx.fillText(
+            shipMessage,
+            500,
+            438
+        );
+
+        // ==========================================
+        // 🐾 SMALL PAW DETAILS
+        // ==========================================
+
+        ctx.fillStyle = BLACK;
+        ctx.font = "22px Arial";
+
+        ctx.fillText("🐾", 185, 440);
+        ctx.fillText("🐾", 815, 440);
+
+        // ==========================================
+        // 📸 CREATE IMAGE
+        // ==========================================
+
+        const attachment = new AttachmentBuilder(
+            await canvas.encode("png"),
+            {
+                name: "meow-ship.png"
+            }
+        );
+
+        // ==========================================
+        // 💌 SEND IMAGE
+        // ==========================================
+
+        await message.reply({
+            files: [attachment]
+        });
+
+    } catch (error) {
+
+        console.error("SHIP ERROR:", error);
+
+        await message.reply(
+            "😿 Something went wrong while making the ship!"
+        );
+    }
 }
     // Test command
     if (command === "meow") {
