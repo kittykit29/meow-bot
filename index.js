@@ -493,7 +493,7 @@ const shopItems = {
 };
 // 💗 MEOW BOT SHIP
 
-if (command.startsWith("meow!ship")) {
+if (command.toLowerCase().startsWith("meow!ship")) {
 
     console.log("🚨 SHIP COMMAND STARTED");
 
