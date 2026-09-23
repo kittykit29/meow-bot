@@ -12,8 +12,16 @@ const {
 
 const {
     createCanvas,
-    loadImage
+    loadImage,
+    GlobalFonts
 } = require("@napi-rs/canvas");
+
+const path = require("path");
+
+GlobalFonts.registerFromPath(
+    path.join(__dirname, "node_modules", "dejavu-fonts-ttf", "ttf", "DejaVuSans.ttf"),
+    "DejaVu Sans"
+);
 
 
 
@@ -599,7 +607,7 @@ if (command.startsWith("meow!ship")) {
 
         ctx.fillStyle = DARK_PINK;
 
-        ctx.font = "bold 32px sans-serif";
+        ctx.font = "bold 32px DejaVu Sans";
 
         ctx.fillText("♥", 75, 90);
         ctx.fillText("♥", 925, 90);
@@ -609,7 +617,7 @@ if (command.startsWith("meow!ship")) {
         // 🖤 TITLE
         ctx.fillStyle = BLACK;
 
-        ctx.font = "bold 50px sans-serif";
+        ctx.font = "bold 50px DejaVu Sans";
 
         ctx.fillText("Meow Bot", 500, 70);
 
@@ -623,7 +631,7 @@ if (command.startsWith("meow!ship")) {
 
         ctx.fillStyle = BLACK;
 
-        ctx.font = "23px sans-serif";
+        ctx.font = "23px DejaVu Sans";
 
         ctx.fillText("Two souls ~ One purr", 500, 110);
 
@@ -689,19 +697,19 @@ if (command.startsWith("meow!ship")) {
 
         // 💗 HEART
         ctx.fillStyle = DARK_PINK;
-        ctx.font = "bold 90px sans-serif";
+        ctx.font = "bold 90px DejaVu Sans";
         ctx.fillText("♥", 500, 270);
 
         // 🖤 USERNAMES
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 25px sans-serif";
+        ctx.font = "bold 25px DejaVu Sans";
 
         ctx.fillText(user1.username, 245, 355);
         ctx.fillText(user2.username, 755, 355);
 
         // 💗 PERCENTAGE
         ctx.fillStyle = BLACK;
-        ctx.font = "bold 70px sans-serif";
+        ctx.font = "bold 70px DejaVu Sans";
 
         ctx.fillText(
             percentage + "%",
@@ -714,7 +722,7 @@ if (command.startsWith("meow!ship")) {
         ctx.fillRect(250, 465, 500, 70);
 
         ctx.fillStyle = WHITE;
-        ctx.font = "bold 20px sans-serif";
+        ctx.font = "bold 20px DejaVu Sans";
 
         ctx.fillText(
             shipMessage,
