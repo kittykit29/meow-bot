@@ -1667,4 +1667,4 @@ for (const action in interactions) {
 
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.TOKEN);
