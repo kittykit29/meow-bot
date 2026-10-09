@@ -1549,39 +1549,28 @@ if (command === "meow!leaderboard") {
 //welcome 
 
 
+//welcome
 const WELCOME_CHANNEL_ID = "1558055283929120769";
 
 client.on("guildMemberAdd", async (member) => {
-  try {
-    const channel = member.guild.channels.cache.get(
-      WELCOME_CHANNEL_ID
-    );
+    try {
+        const channel = member.guild.channels.cache.get(
+            WELCOME_CHANNEL_ID
+        );
 
-    if (!channel) {
-      console.log("Welcome channel not found!");
-      return;
+        if (!channel) {
+            console.log("Welcome channel not found!");
+            return;
+        }
+
+        await channel.send({
+            content: `YOUR WELCOME MESSAGE HERE`
+        });
+
+        console.log(`Welcomed ${member.user.tag}!`);
+    } catch (error) {
+        console.error("Welcome message error:", error);
     }
-
-    await channel.send({
-      content: `୨୧ ‧₊˚ ⋅ 🐾 **MEOWWW! A NEW KITTY HAS ARRIVED!** 🐾 ⋅ ˚₊‧ ୨୧
-
-૮₍ ˶ᵔ ᵕ ᵔ˶ ₎ა ♡
-
-🎀 Welcome to our little cozy corner, ${member}! 💗
-
-🌷 We're so happy to have you here! Make yourself at home, meet some lovely people, and don't forget to spread some love and sprinkle a little chaos! ฅ^•ﻌ•^ฅ
-
-🧸 Please check out the rules, say hiiii, and have fun with us!
-
-💌 **You are our newest little kitty, and we hope you feel right at home!**
-
-₊˚⊹♡ ૮꒰ ˶• ༝ •˶꒱ა ♡⊹˚₊`
-    });
-
-    console.log(`Welcomed ${member.user.tag}!`);
-  } catch (error) {
-    console.error("Welcome message error:", error);
-  }
 });
 
     // Interaction commands
