@@ -17,6 +17,7 @@ const {
 } = require("@napi-rs/canvas");
 
 const path = require("path");
+const fs = require("fs");
 
 GlobalFonts.registerFromPath(
     path.join(__dirname, "node_modules", "dejavu-fonts-ttf", "ttf", "DejaVuSans.ttf"),
