@@ -55,6 +55,42 @@ function saveLevels(data) {
 }
 
 
+ // 💍 Marriage database
+ const marriagesFile = path.join(
+     __dirname,
+     "database",
+     "marriages.json"
+ );
+
+ function getMarriages() {
+     if (!fs.existsSync(marriagesFile)) {
+         fs.mkdirSync(path.dirname(marriagesFile), {
+             recursive: true
+         });
+         fs.writeFileSync(marriagesFile, "{}");
+     }
+
+     return JSON.parse(
+         fs.readFileSync(marriagesFile, "utf8")
+     );
+ }
+
+ function saveMarriages(data) {
+     fs.mkdirSync(path.dirname(marriagesFile), {
+         recursive: true
+     });
+
+     fs.writeFileSync(
+         marriagesFile,
+         JSON.stringify(data, null, 2)
+     );
+ }
+
+ // 💌 Pending proposals
+ const pendingMarriageProposals = new Map();
+
+
+
 const economyFile = "./database/economy.json";
 
 function getEconomy() {
@@ -82,6 +118,138 @@ function createUser(id) {
     return economy;
 }
 
+
+ // 🍒 Cherry-red marriage card
+ async function makeMarriageCard(user1, user2, stage = 0, divorced = false) {
+     const canvas = createCanvas(900, 500);
+     const ctx = canvas.getContext("2d");
+
+     // Cherry-red background
+     ctx.fillStyle = "#B51232";
+     ctx.fillRect(0, 0, 900, 500);
+
+     // Light-red floating hearts
+     const hearts = [
+         [65, 65], [150, 140], [820, 70],
+         [750, 150], [75, 400], [820, 400],
+         [250, 60], [650, 65], [200, 445],
+         [700, 440], [100, 250], [800, 250]
+     ];
+
+     ctx.textAlign = "center";
+     ctx.textBaseline = "middle";
+
+     for (let i = 0; i < hearts.length; i++) {
+         const [x, y] = hearts[i];
+         ctx.fillStyle = "#FF9DB2";
+         ctx.font = `${24 + ((i + stage) % 3) * 5}px sans-serif`;
+         ctx.fillText("♥", x, y + (stage % 2 ? 8 : 0));
+     }
+
+     // Cream-colored card
+     ctx.fillStyle = "#FFF4F6";
+     ctx.beginPath();
+     ctx.roundRect(125, 35, 650, 430, 32);
+     ctx.fill();
+
+     // Heading
+     ctx.fillStyle = "#B51232";
+     ctx.font = "bold 30px sans-serif";
+     ctx.fillText(
+         divorced ? "A NEW CHAPTER" : "MEOW LOVE STORY",
+         450,
+         85
+     );
+
+     // Load avatars
+     const avatar1 = await loadImage(
+         user1.displayAvatarURL({ extension: "png", size: 256 })
+     );
+
+     const avatar2 = await loadImage(
+         user2.displayAvatarURL({ extension: "png", size: 256 })
+     );
+
+     // Draw circular avatars
+     function drawAvatar(avatar, x, y) {
+         ctx.save();
+         ctx.beginPath();
+         ctx.arc(x, y, 65, 0, Math.PI * 2);
+         ctx.clip();
+         ctx.drawImage(avatar, x - 60, y - 60, 120, 120);
+         ctx.restore();
+
+         ctx.beginPath();
+         ctx.arc(x, y, 65, 0, Math.PI * 2);
+         ctx.strokeStyle = "#FF9DB2";
+         ctx.lineWidth = 6;
+         ctx.stroke();
+     }
+
+     drawAvatar(avatar1, 310, 205);
+     drawAvatar(avatar2, 590, 205);
+
+     // Heart between the avatars
+     ctx.fillStyle = "#E11D48";
+     ctx.font = `${stage % 2 === 0 ? 48 : 65}px sans-serif`;
+     ctx.fillText(divorced ? "♡" : "♥", 450, 205);
+
+     // Usernames
+     ctx.fillStyle = "#8F1230";
+     ctx.font = "bold 20px sans-serif";
+
+     const name1 = user1.username.length > 16
+         ? user1.username.slice(0, 13) + "..."
+         : user1.username;
+
+     const name2 = user2.username.length > 16
+         ? user2.username.slice(0, 13) + "..."
+         : user2.username;
+
+     ctx.fillText(name1, 310, 300);
+     ctx.fillText(name2, 590, 300);
+
+     // Caption
+     ctx.fillStyle = "#B51232";
+     ctx.font = "bold 21px sans-serif";
+     ctx.fillText(
+         divorced ? "Wishing you both happiness ♡" : "Two hearts, one story ♡",
+         450,
+         365
+     );
+
+     return new AttachmentBuilder(
+         canvas.toBuffer("image/png"),
+         { name: "meow-love.png" }
+     );
+ }
+
+ // 💗 Show three changing card frames
+ async function playMarriageAnimation(channel, user1, user2, divorced = false) {
+     let sentMessage = null;
+
+     for (let stage = 0; stage < 3; stage++) {
+         const card = await makeMarriageCard(
+             user1,
+             user2,
+             stage,
+             divorced
+         );
+
+         if (!sentMessage) {
+             sentMessage = await channel.send({
+                 files: [card]
+             });
+         } else {
+             await sentMessage.edit({
+                 files: [card]
+             });
+         }
+
+         await new Promise(resolve => setTimeout(resolve, 800));
+     }
+ }
+
  
 const client = new Client({
   intents: [
@@ -102,6 +270,133 @@ client.on("messageCreate", async (message) => {
 
     // Make all commands case-insensitive
     const command = message.content.trim().toLowerCase();
+
+
+    // 💍 Marriage proposal command
+    if (command.startsWith("meow!marry")) {
+        if (!message.guild) return;
+
+        const target = message.mentions.users.first();
+
+        if (!target) {
+            return message.reply(
+                "💌 Mention someone! Example: `meow!marry @user`"
+            );
+        }
+
+        if (target.id === message.author.id) {
+            return message.reply("😭 You can't marry yourself!");
+        }
+
+        if (target.bot) {
+            return message.reply("🐱 You can't marry a bot!");
+        }
+
+        const marriages = getMarriages();
+
+        if (marriages[message.author.id]) {
+            return message.reply(
+                "💔 You're already married! Use `meow!divorce` first."
+            );
+        }
+
+        if (marriages[target.id]) {
+            return message.reply(
+                "💔 That person is already married!"
+            );
+        }
+
+        if (pendingMarriageProposals.has(target.id)) {
+            return message.reply(
+                "💌 That person already has a pending proposal!"
+            );
+        }
+
+        pendingMarriageProposals.set(target.id, message.author.id);
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId(
+                    `marry_accept_${message.author.id}_${target.id}`
+                )
+                .setLabel("Accept 💍")
+                .setStyle(ButtonStyle.Success),
+
+            new ButtonBuilder()
+                .setCustomId(
+                    `marry_decline_${message.author.id}_${target.id}`
+                )
+                .setLabel("Decline 💔")
+                .setStyle(ButtonStyle.Danger)
+        );
+
+        return message.channel.send({
+            content:
+                `💌 ${target}, **${message.author.username}** wants to marry you! 🍒❤️\n` +
+                "Will you say yes to your Meow Love Story?",
+            components: [row]
+        });
+    }
+
+    // 💔 Divorce command
+    if (command === "meow!divorce") {
+        if (!message.guild) return;
+
+        const marriages = getMarriages();
+        const spouseId = marriages[message.author.id];
+
+        if (!spouseId) {
+            return message.reply(
+                "💕 You're single! There's no marriage to end."
+            );
+        }
+
+        const spouse = await client.users.fetch(spouseId)
+            .catch(() => null);
+
+        // Remove the marriage from both users
+        delete marriages[message.author.id];
+        delete marriages[spouseId];
+        saveMarriages(marriages);
+
+        if (spouse) {
+            await playMarriageAnimation(
+                message.channel,
+                message.author,
+                spouse,
+                true
+            );
+        } else {
+            await message.channel.send(
+                "💔 The marriage has ended. You're single again."
+            );
+        }
+    }
+
+    // 💗 Check marriage status
+    if (command === "meow!marriage") {
+        if (!message.guild) return;
+
+        const target = message.mentions.users.first() || message.author;
+        const marriages = getMarriages();
+        const spouseId = marriages[target.id];
+
+        if (!spouseId) {
+            return message.reply(
+                `💗 **${target.username}** is currently **Single**.`
+            );
+        }
+
+        const spouse = await client.users.fetch(spouseId)
+            .catch(() => null);
+
+        return message.reply(
+            spouse
+                ? `💍 **${target.username}** is married to **${spouse.username}**! ❤️`
+                : `💍 **${target.username}** is married, but I couldn't load their spouse's profile.`
+        );
+    }
+
 
 
     // 🐾 Leveling system: 50 messages per level
@@ -1949,6 +2244,98 @@ client.on("guildMemberAdd", async (member) => {
         console.error("Welcome message error:", error);
     }
 });
+
+
+ // 💍 Handle marriage proposal buttons
+ client.on("interactionCreate", async (interaction) => {
+     if (!interaction.isButton()) return;
+
+     const parts = interaction.customId.split("_");
+
+     if (parts[0] !== "marry") return;
+
+     const action = parts[1];
+     const proposerId = parts[2];
+     const targetId = parts[3];
+
+     // Only the person receiving the proposal can respond
+     if (interaction.user.id !== targetId) {
+         return interaction.reply({
+             content: "💌 This proposal isn't for you!",
+             ephemeral: true
+         });
+     }
+
+     // Check that the proposal is still pending
+     if (pendingMarriageProposals.get(targetId) !== proposerId) {
+         return interaction.update({
+             content: "💌 This proposal has already been answered.",
+             components: []
+         });
+     }
+
+     // 💔 Decline proposal
+     if (action === "decline") {
+         pendingMarriageProposals.delete(targetId);
+
+         return interaction.update({
+             content: `💔 **${interaction.user.username}** declined the marriage proposal.`,
+             components: []
+         });
+     }
+
+     if (action !== "accept") return;
+
+     const marriages = getMarriages();
+
+     // Make sure neither person has married someone else
+     if (marriages[proposerId] || marriages[targetId]) {
+         pendingMarriageProposals.delete(targetId);
+
+         return interaction.update({
+             content: "💔 This proposal can't be accepted because one of you is already married!",
+             components: []
+         });
+     }
+
+     const proposer = await client.users.fetch(proposerId)
+         .catch(() => null);
+
+     if (!proposer) {
+         pendingMarriageProposals.delete(targetId);
+
+         return interaction.update({
+             content: "😿 I couldn't find the person who proposed.",
+             components: []
+         });
+     }
+
+     const partner = interaction.user;
+
+     // 💗 Save both users as married
+     marriages[proposerId] = targetId;
+     marriages[targetId] = proposerId;
+     saveMarriages(marriages);
+
+     pendingMarriageProposals.delete(targetId);
+
+     await interaction.update({
+         content: `💍🍒 **${proposer.username} and ${partner.username} are now married!** ❤️`,
+         components: []
+     });
+
+     // Show the cherry-red marriage card
+     try {
+         await playMarriageAnimation(
+             interaction.channel,
+             proposer,
+             partner
+         );
+     } catch (error) {
+         console.error("Marriage card error:", error);
+     }
+ });
+
 
 });
 
