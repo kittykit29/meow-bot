@@ -2249,17 +2249,24 @@ for (const action in interactions) {
     }
 }
 
-// 💗 Welcome new members
+
+ // 💗 Welcome new members
 const WELCOME_CHANNEL_ID = "1558055283929120769";
+const welcomedMembers = new Set();
 
 client.on("guildMemberAdd", async (member) => {
     try {
+        // Prevent duplicate welcomes while the bot is running
+        if (welcomedMembers.has(member.id)) return;
+        welcomedMembers.add(member.id);
+
         const channel = await member.guild.channels.fetch(
             WELCOME_CHANNEL_ID
         );
 
         if (!channel || !channel.isTextBased()) {
             console.log("Welcome channel not found!");
+            welcomedMembers.delete(member.id);
             return;
         }
 
@@ -2273,6 +2280,7 @@ client.on("guildMemberAdd", async (member) => {
         console.log(`Welcomed ${member.user.tag}!`);
     } catch (error) {
         console.error("Welcome message error:", error);
+        welcomedMembers.delete(member.id);
     }
 });
 
