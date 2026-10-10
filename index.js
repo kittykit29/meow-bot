@@ -36,6 +36,25 @@ const activeTypingGames = new Map();
 const chatCooldown = new Map();
 const activeGuessGames = new Map();
 
+
+const MESSAGES_PER_LEVEL = 50;
+const levelsFile = path.join(__dirname, "database", "levels.json");
+
+function getLevels() {
+    if (!fs.existsSync(levelsFile)) {
+        fs.mkdirSync(path.dirname(levelsFile), { recursive: true });
+        fs.writeFileSync(levelsFile, "{}");
+    }
+
+    return JSON.parse(fs.readFileSync(levelsFile, "utf8"));
+}
+
+function saveLevels(data) {
+    fs.mkdirSync(path.dirname(levelsFile), { recursive: true });
+    fs.writeFileSync(levelsFile, JSON.stringify(data, null, 2));
+}
+
+
 const economyFile = "./database/economy.json";
 
 function getEconomy() {
@@ -83,6 +102,40 @@ client.on("messageCreate", async (message) => {
 
     // Make all commands case-insensitive
     const command = message.content.trim().toLowerCase();
+
+
+    // 🐾 Leveling system: 50 messages per level
+    if (message.guild && !command.startsWith("meow!")) {
+        const levels = getLevels();
+        const userId = `${message.guild.id}-${message.author.id}`;
+
+        if (!levels[userId]) {
+            levels[userId] = {
+                messages: 0,
+                level: 0
+            };
+        }
+
+        const oldLevel = Math.floor(
+            levels[userId].messages / MESSAGES_PER_LEVEL
+        );
+
+        levels[userId].messages += 1;
+
+        const newLevel = Math.floor(
+            levels[userId].messages / MESSAGES_PER_LEVEL
+        );
+
+        levels[userId].level = newLevel;
+        saveLevels(levels);
+
+        if (newLevel > oldLevel) {
+            await message.channel.send(
+                `🎉 ${message.author} leveled up to **Level ${newLevel}**! 🐱💗`
+            );
+        }
+    }
+
 
 
 // 💬 Chat Coin Reward
@@ -771,6 +824,39 @@ if (command.toLowerCase().startsWith("meow!ship")) {
     }
 }
 
+
+    // ⭐ Level command
+    if (command === "meow!level" || command === "meow!rank") {
+        if (!message.guild) return;
+
+        const levels = getLevels();
+        const userId = `${message.guild.id}-${message.author.id}`;
+
+        const userData = levels[userId] || {
+            messages: 0,
+            level: 0
+        };
+
+        const level = Math.floor(
+            userData.messages / MESSAGES_PER_LEVEL
+        );
+
+        const progress = userData.messages % MESSAGES_PER_LEVEL;
+
+        return message.reply({
+            embeds: [{
+                color: 0xff69b4,
+                title: `🐱 ${message.author.username}'s Level`,
+                description:
+                    `⭐ **Level:** ${level}\n` +
+                    `💬 **Messages counted:** ${userData.messages}\n` +
+                    `📈 **Progress:** ${progress}/50 messages\n` +
+                    `🐾 **Next level:** ${50 - progress} more messages!`
+            }]
+        });
+    }
+
+
     // Test command
     if (command === "meow") {
         message.reply("Meow! 😺");
@@ -834,6 +920,8 @@ if (command === "meow!help") {
 \`meow!type\`⌨️ - Who types fast
 \`meow!guess\`🐾 - Guess the word
 \`meow!rate\`⭐ - Rate a user
+\`meow!level\` ⭐ - Check your level
+\`meow!rank\` 🐾 - Check your rank
 
 `
             },
