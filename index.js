@@ -1573,6 +1573,25 @@ if (command === "meow!inventory") {
          const messagesInLevel = messages % MESSAGES_PER_LEVEL;
          const progress = messagesInLevel / MESSAGES_PER_LEVEL;
 
+
+         
+        // 💍 Get this user's marriage status
+        const marriages = getMarriages();
+        const spouseId = marriages[message.author.id] || null;
+
+        let spouseName = null;
+
+        if (spouseId) {
+            const spouse = await client.users
+                .fetch(spouseId)
+                .catch(() => null);
+
+            spouseName = spouse
+                ? spouse.username
+                : "Unknown";
+        }
+
+
          // Create profile card
          const canvas = createCanvas(900, 540);
          const ctx = canvas.getContext("2d");
@@ -1690,6 +1709,18 @@ if (command === "meow!inventory") {
              567,
              348
          );
+
+         
+        // 💍 Marriage status
+        ctx.fillStyle = "#B52B60";
+        ctx.font = "bold 17px sans-serif";
+
+        const marriageStatus = spouseId
+            ? `♥ Married to ${spouseName}`
+            : "♡ Single";
+
+        ctx.fillText(marriageStatus, 450, 385);
+
 
          // Level progress label
          ctx.fillStyle = "#B52B60";
