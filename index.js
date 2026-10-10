@@ -1257,30 +1257,196 @@ if (command === "meow!inventory") {
 
 }
 
-// Profile
-if (command === "meow!profile") {
 
-    const economy = createUser(message.author.id);
-    const user = economy[message.author.id];
+ // 💗 Meow Bot Profile Card
+ if (command === "meow!profile") {
+     try {
+         const economy = createUser(message.author.id);
+         const user = economy[message.author.id];
+         saveEconomy(economy);
 
-    saveEconomy(economy);
+         // Get level information
+         const levels = getLevels();
+         const levelKey = `${message.guild.id}-${message.author.id}`;
+         const levelData = levels[levelKey] || {
+             messages: 0,
+             level: 0
+         };
 
-    message.channel.send({
-        embeds: [
-            {
-                title: `😺 ${message.author.username}'s Profile`,
-                fields: [
-                    {
-                        name: "💰 Coins",
-                        value: `${user.coins}`
-                    }
-                ],
-                color: 0xff69b4
-            }
-        ]
-    });
+         const messages = levelData.messages || 0;
+         const level = Math.floor(messages / MESSAGES_PER_LEVEL);
+         const messagesInLevel = messages % MESSAGES_PER_LEVEL;
+         const progress = messagesInLevel / MESSAGES_PER_LEVEL;
 
-}
+         // Create profile card
+         const canvas = createCanvas(900, 540);
+         const ctx = canvas.getContext("2d");
+
+         // 🌸 Light pink background
+         ctx.fillStyle = "#FFE6F0";
+         ctx.fillRect(0, 0, 900, 540);
+
+         // 💗 Dark pink hearts
+         const hearts = [
+             [55, 65, 28],
+             [150, 130, 18],
+             [820, 65, 30],
+             [760, 155, 20],
+             [70, 260, 22],
+             [830, 285, 26],
+             [100, 440, 30],
+             [790, 450, 28],
+             [235, 45, 16],
+             [670, 55, 18],
+             [190, 475, 20],
+             [700, 485, 18],
+             [45, 365, 16],
+             [855, 380, 18]
+         ];
+
+         ctx.textAlign = "center";
+         ctx.textBaseline = "middle";
+
+         for (const [x, y, size] of hearts) {
+             ctx.fillStyle = "#E75480";
+             ctx.font = `${size}px sans-serif`;
+             ctx.fillText("♥", x, y);
+         }
+
+         // 🤍 Rounded white profile panel
+         ctx.fillStyle = "#FFF9FC";
+         ctx.beginPath();
+         ctx.roundRect(180, 35, 540, 470, 35);
+         ctx.fill();
+
+         // 💕 Pink outline
+         ctx.strokeStyle = "#F5A3C2";
+         ctx.lineWidth = 4;
+         ctx.stroke();
+
+         // Profile heading
+         ctx.fillStyle = "#C72F69";
+         ctx.font = "bold 30px sans-serif";
+         ctx.fillText("♡ MY MEOW PROFILE ♡", 450, 78);
+
+         // Load Discord profile picture
+         const avatarURL = message.author.displayAvatarURL({
+             extension: "png",
+             size: 256
+         });
+
+         const avatar = await loadImage(avatarURL);
+
+         // Circular avatar border
+         ctx.save();
+         ctx.beginPath();
+         ctx.arc(450, 165, 67, 0, Math.PI * 2);
+         ctx.fillStyle = "#F5A3C2";
+         ctx.fill();
+         ctx.restore();
+
+         // Clip avatar into a circle
+         ctx.save();
+         ctx.beginPath();
+         ctx.arc(450, 165, 60, 0, Math.PI * 2);
+         ctx.clip();
+         ctx.drawImage(avatar, 390, 105, 120, 120);
+         ctx.restore();
+
+         // Username
+         ctx.fillStyle = "#B52B60";
+         ctx.font = "bold 27px sans-serif";
+
+         let username = message.author.username;
+         if (username.length > 22) {
+             username = username.slice(0, 19) + "...";
+         }
+
+         ctx.fillText(username, 450, 245);
+
+         // Level and coins stat cards
+         ctx.fillStyle = "#FFE0ED";
+         ctx.beginPath();
+         ctx.roundRect(230, 275, 205, 100, 18);
+         ctx.fill();
+
+         ctx.beginPath();
+         ctx.roundRect(465, 275, 205, 100, 18);
+         ctx.fill();
+
+         // Level stat
+         ctx.fillStyle = "#C72F69";
+         ctx.font = "bold 20px sans-serif";
+         ctx.fillText("🌸 LEVEL", 332, 305);
+
+         ctx.fillStyle = "#8F2450";
+         ctx.font = "bold 34px sans-serif";
+         ctx.fillText(String(level), 332, 348);
+
+         // Coins stat
+         ctx.fillStyle = "#C72F69";
+         ctx.font = "bold 20px sans-serif";
+         ctx.fillText("♡ COINS", 567, 305);
+
+         ctx.fillStyle = "#8F2450";
+         ctx.font = "bold 34px sans-serif";
+         ctx.fillText(
+             Number(user.coins || 0).toLocaleString(),
+             567,
+             348
+         );
+
+         // Level progress label
+         ctx.fillStyle = "#B52B60";
+         ctx.font = "bold 18px sans-serif";
+         ctx.fillText("♡ LEVEL PROGRESS ♡", 450, 410);
+
+         // Progress bar background
+         ctx.fillStyle = "#F8C6D9";
+         ctx.beginPath();
+         ctx.roundRect(260, 430, 380, 18, 9);
+         ctx.fill();
+
+         // Progress bar fill
+         if (progress > 0) {
+             ctx.fillStyle = "#E75480";
+             ctx.beginPath();
+             ctx.roundRect(
+                 260,
+                 430,
+                 Math.max(18, 380 * progress),
+                 18,
+                 9
+             );
+             ctx.fill();
+         }
+
+         // Message progress text
+         ctx.fillStyle = "#A82D5D";
+         ctx.font = "16px sans-serif";
+         ctx.fillText(
+             `${messagesInLevel}/${MESSAGES_PER_LEVEL} messages to next level`,
+             450,
+             475
+         );
+
+         // Send profile image to Discord
+         const attachment = new AttachmentBuilder(
+             canvas.toBuffer("image/png"),
+             { name: "meow-profile.png" }
+         );
+
+         await message.channel.send({
+             files: [attachment]
+         });
+
+     } catch (error) {
+         console.error("Profile command error:", error);
+         await message.channel.send(
+             "Oops! 💗 I couldn't create your profile card. Please try again!"
+         );
+     }
+ }
 
 // Pay
 if (command.startsWith("meow!pay")) {
