@@ -1546,25 +1546,25 @@ if (command === "meow!leaderboard") {
 
 }
 
-//welcome 
-
-
-//welcome
+// 💗 Welcome new members
 const WELCOME_CHANNEL_ID = "1558055283929120769";
 
 client.on("guildMemberAdd", async (member) => {
     try {
-        const channel = member.guild.channels.cache.get(
+        const channel = await member.guild.channels.fetch(
             WELCOME_CHANNEL_ID
         );
 
-        if (!channel) {
+        if (!channel || !channel.isTextBased()) {
             console.log("Welcome channel not found!");
             return;
         }
 
         await channel.send({
-            content: `YOUR WELCOME MESSAGE HERE`
+            content:
+                `૮ ˶ᵔ ᵕ ᵔ˶ ა 💗 Welcome to the server, ${member}!\n\n` +
+                `We're so happy to have you here! 🌸✨\n` +
+                `Make yourself comfy, meet everyone, and have fun! 🐾💕`
         });
 
         console.log(`Welcomed ${member.user.tag}!`);
