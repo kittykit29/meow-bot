@@ -1573,6 +1573,160 @@ client.on("guildMemberAdd", async (member) => {
     }
 });
 
+
+
+// 🐾 MEOW BOT LEVELING SYSTEM
+const LEVELS_FILE = path.join(__dirname, "database", "levels.json");
+const XP_COOLDOWN = 60 * 1000;
+const XP_PER_MESSAGE_MIN = 5;
+const XP_PER_MESSAGE_MAX = 15;
+
+const xpCooldowns = new Map();
+
+// Create the leveling database if it doesn't exist
+if (!fs.existsSync(LEVELS_FILE)) {
+    fs.mkdirSync(path.dirname(LEVELS_FILE), { recursive: true });
+    fs.writeFileSync(LEVELS_FILE, JSON.stringify({}, null, 2));
+}
+
+function loadLevels() {
+    try {
+        return JSON.parse(fs.readFileSync(LEVELS_FILE, "utf8"));
+    } catch (error) {
+        console.error("Could not load leveling data:", error);
+        return {};
+    }
+}
+
+function saveLevels(data) {
+    fs.writeFileSync(LEVELS_FILE, JSON.stringify(data, null, 2));
+}
+
+function xpNeededForNextLevel(level) {
+    return (level + 1) * 100;
+}
+
+// Award XP for chatting
+client.on("messageCreate", async (message) => {
+    try {
+        if (!message.guild || message.author.bot) return;
+
+        const content = message.content.trim();
+
+        // Commands should not earn XP
+        if (content.toLowerCase().startsWith("meow!")) return;
+
+        // Ignore empty messages
+        if (!content) return;
+
+        const cooldownKey = `${message.guild.id}_${message.author.id}`;
+        const now = Date.now();
+        const lastMessage = xpCooldowns.get(cooldownKey) || 0;
+
+        if (now - lastMessage < XP_COOLDOWN) return;
+
+        xpCooldowns.set(cooldownKey, now);
+
+        const levels = loadLevels();
+        const key = cooldownKey;
+
+        if (!levels[key]) {
+            levels[key] = { xp: 0, level: 0 };
+        }
+
+        const user = levels[key];
+        const oldLevel = user.level;
+        const earnedXP =
+            Math.floor(Math.random() * (XP_PER_MESSAGE_MAX - XP_PER_MESSAGE_MIN + 1))
+            + XP_PER_MESSAGE_MIN;
+
+        user.xp += earnedXP;
+        user.level = Math.floor(user.xp / 100);
+
+        saveLevels(levels);
+
+        if (user.level > oldLevel) {
+            await message.channel.send(
+                `🎉🐱 Congratulations, ${message.author}!\n` +
+                `You reached **Level ${user.level}**! 💗✨`
+            );
+        }
+    } catch (error) {
+        console.error("Leveling system error:", error);
+    }
+});
+
+// 📊 meow!rank — check your level
+client.on("messageCreate", async (message) => {
+    try {
+        if (message.author.bot || !message.guild) return;
+
+        const command = message.content.trim().toLowerCase();
+        if (!command.startsWith("meow!rank")) return;
+
+        const target = message.mentions.users.first() || message.author;
+        const levels = loadLevels();
+        const key = `${message.guild.id}_${target.id}`;
+        const user = levels[key] || { xp: 0, level: 0 };
+
+        const progress = user.xp % 100;
+        const remaining = 100 - progress;
+
+        await message.channel.send(
+            `🐾 **${target.username}'s Cat Rank** 💗\n\n` +
+            `⭐ Level: **${user.level}**\n` +
+            `✨ Total XP: **${user.xp}**\n` +
+            `📈 Progress: **${progress}/100 XP**\n` +
+            `🐱 **${remaining} XP** until the next level!`
+        );
+    } catch (error) {
+        console.error("Rank command error:", error);
+    }
+});
+
+// 🏆 meow!levels — server leaderboard
+client.on("messageCreate", async (message) => {
+    try {
+        if (message.author.bot || !message.guild) return;
+        if (message.content.trim().toLowerCase() !== "meow!levels") return;
+
+        const levels = loadLevels();
+        const prefix = `${message.guild.id}_`;
+
+        const topUsers = Object.entries(levels)
+            .filter(([key]) => key.startsWith(prefix))
+            .sort((a, b) => b[1].xp - a[1].xp)
+            .slice(0, 10);
+
+        if (topUsers.length === 0) {
+            await message.channel.send(
+                "🐱 Nobody has earned XP yet! Start chatting to become the first!"
+            );
+            return;
+        }
+
+        const lines = await Promise.all(
+            topUsers.map(async ([key, data], index) => {
+                const userId = key.slice(prefix.length);
+                let username = `User ${userId}`;
+
+                try {
+                    const user = await client.users.fetch(userId);
+                    username = user.username;
+                } catch {}
+
+                return `**${index + 1}.** ${username} — Level **${data.level}** (${data.xp} XP)`;
+            })
+        );
+
+        await message.channel.send(
+            `🏆 **Meow Bot — Top 10 Levels** 🐾\n\n${lines.join("\n")}`
+        );
+    } catch (error) {
+        console.error("Levels leaderboard error:", error);
+    }
+});
+
     // Interaction commands
     const interactions = {
 
