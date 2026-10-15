@@ -2249,38 +2249,44 @@ for (const action in interactions) {
     }
 }
 
-
- // 💗 Welcome new members
+c// 💗 Welcome new members
 const WELCOME_CHANNEL_ID = "1558055283929120769";
-const welcomedMembers = new Set();
 
 client.on("guildMemberAdd", async (member) => {
     try {
-        // Prevent duplicate welcomes while the bot is running
-        if (welcomedMembers.has(member.id)) return;
-        welcomedMembers.add(member.id);
-
-        const channel = await member.guild.channels.fetch(
+        // Fetch the welcome channel
+        const channel = await client.channels.fetch(
             WELCOME_CHANNEL_ID
         );
 
+        // Check if the channel exists and is text-based
         if (!channel || !channel.isTextBased()) {
-            console.log("Welcome channel not found!");
-            welcomedMembers.delete(member.id);
+            console.log(
+                "Welcome channel not found or is not text-based."
+            );
             return;
         }
 
-        await channel.send({
-            content:
-                `૮ ˶ᵔ ᵕ ᵔ˶ ა 💗 Welcome to the server, ${member}!\n\n` +
-                `We're so happy to have you here! 🌸✨\n` +
-                `Make yourself comfy, meet everyone, and have fun! 🐾💕`
-        });
+        // Make sure the channel belongs to the correct server
+        if (channel.guildId !== member.guild.id) {
+            console.log(
+                "Welcome channel belongs to a different server!"
+            );
+            return;
+        }
 
-        console.log(`Welcomed ${member.user.tag}!`);
+        // Send one welcome message
+        await channel.send(
+            `🌸・₊✧ Welcome to the meow gang, ${member}! ✧₊・🌸\n` +
+            `We're so happy you're here!Enjoy your time here cutie cat. 🐾💕\n` +
+            `Make yourself comfy and enjoy your stay!Kitty loves you 🎀`
+        );
+
     } catch (error) {
-        console.error("Welcome message error:", error);
-        welcomedMembers.delete(member.id);
+        console.error(
+            "Welcome message error:",
+            error.message
+        );
     }
 });
 
